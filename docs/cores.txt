@@ -1,0 +1,57 @@
+1. CORES PRINCIPAIS
+Primary:            #2563EB
+Primary Dark:       #1D4ED8
+Primary Light:      #3B82F6
+Dark:               #1E293B
+White:              #FFFFFF
+
+2. CORES DE BOTÕES
+
+Botão Primary (Login, Salvar, Criar):
+- Normal:     fundo #2563EB | texto #FFFFFF
+- Hover:      fundo #1D4ED8 | texto #FFFFFF
+- Active:     fundo #1E40AF | texto #FFFFFF
+- Disabled:   fundo #93C5FD | texto #FFFFFF
+
+Botão Secondary (Cancelar, Voltar):
+- Normal:     fundo #F1F5F9 | texto #1E293B | borda #E2E8F0
+- Hover:      fundo #E2E8F0 | texto #1E293B
+- Active:     fundo #CBD5E1 | texto #1E293B
+- Disabled:   fundo #F8FAFC | texto #94A3B8
+
+Botão Danger (Cancelar Demanda):
+- Normal:     fundo #EF4444 | texto #FFFFFF
+- Hover:      fundo #DC2626 | texto #FFFFFF
+- Active:     fundo #B91C1C | texto #FFFFFF
+
+Botão Success (Confirmar / Concluir):
+- Normal:     fundo #10B981 | texto #FFFFFF
+- Hover:      fundo #059669 | texto #FFFFFF
+
+
+3. CORES DE STATUS DAS DEMANDAS
+Aberta:         fundo #DBEAFE | texto #1E40AF
+Em andamento:   fundo #FEF3C7 | texto #92400E
+Em revisão:     fundo #EDE9FE | texto #5B21B6
+Concluída:      fundo #D1FAE5 | texto #065F46
+Cancelada:      fundo #FEE2E2 | texto #991B1B
+
+
+4. CORES DE PRIORIDADE
+Crítica:        fundo #FEE2E2 | texto #991B1B
+Alta:           fundo #FFEDD5 | texto #9A3412
+Média:          fundo #FEF9C3 | texto #854D0E
+Baixa:          fundo #DCFCE7 | texto #166534
+
+
+5. OUTROS ELEMENTOS
+Fundo da página:        #F8FAFC #E2E8F0
+Fundo de cards:         #FFFFFF
+Bordas:                 #E2E8F0
+Texto principal:        #1E293B
+Texto secundário:       #64748B
+Placeholder:            #94A3B8
+Borda de input (focus): #2563EB
+Borda de input (erro):  #EF4444
+Link:                   #2563EB
+Link hover:             #1D4ED8
