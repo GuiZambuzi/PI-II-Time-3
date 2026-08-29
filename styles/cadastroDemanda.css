@@ -1,5 +1,3 @@
-/* cadastroDemanda.css */
-
 :root {
     /* 1. CORES PRINCIPAIS */
     --primary: #2563EB;
@@ -38,31 +36,92 @@
     --input-error: #EF4444;
 }
 
-/* 
- * Correção do Flexbox do Body (herdado do global.css).
- * Transforma em coluna para que o Header fique no topo e o Main ocupe o restante da tela.
- */
 body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     min-height: 100vh;
-    color: var(--text-main); /* Sobrescrevendo a cor cinza global para o padrão escuro */
+    color: var(--text-main);
+    background-color: var(--bg-page);
 }
 
 /* CONTEÚDO PRINCIPAL (Main) */
 .main-content {
     width: 100%;
-    max-width: 900px;
+    /* Aumentado para 1200px para caber os dois painéis confortavelmente */
+    max-width: 1200px; 
     padding: 40px 20px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Coloca os itens lado a lado */
+    flex-wrap: wrap; /* Quebra para a linha de baixo em telas pequenas */
+    align-items: flex-start;
     gap: 24px;
     flex: 1; 
 }
 
-/* CONTAINER DO FORMULÁRIO (Card) */
+/* =========================================
+   NOVO: LISTA LATERAL DE DEMANDAS
+   ========================================= */
+.demandas-list-container {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.demandas-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.demanda-item {
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--white);
+    transition: all 0.3s ease;
+}
+
+.demanda-item:hover {
+    border-color: var(--primary-light);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+    transform: translateY(-2px); /* Efeito de pular ao passar o mouse */
+}
+
+.demanda-item h4 {
+    margin: 0 0 6px 0;
+    color: var(--text-main);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.demanda-item p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 16px 0;
+    font-weight: 500;
+}
+
+/* Deixa o botão da lista um pouco menor que os botões padrão */
+.demanda-item .btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 13px;
+}
+
+/* =========================================
+   CONTAINER DO FORMULÁRIO (Card)
+   ========================================= */
 .form-container {
+    flex: 2; /* Ocupa 2/3 do espaço disponível */
+    min-width: 400px;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 16px;
@@ -96,7 +155,6 @@ body {
 
 .multiple-columns {
     display: grid;
-    /* Cria colunas responsivas lado a lado automaticamente */
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
 }
@@ -140,7 +198,6 @@ body {
     font-weight: 400;
 }
 
-/* Estado de Foco (quando clica no input) */
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -149,13 +206,11 @@ body {
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
-/* Estilizando o textarea */
 .form-group textarea {
     resize: vertical;
     min-height: 120px;
 }
 
-/* Estilizando o Select para não ficar opaco em alguns navegadores */
 .form-group select {
     appearance: none;
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -190,7 +245,6 @@ body {
     justify-content: center;
 }
 
-/* BOTÃO PRIMÁRIO (Salvar) */
 .btn-primary {
     background-color: var(--btn-primary-normal);
     color: var(--white);
@@ -208,14 +262,6 @@ body {
     transform: translateY(0);
 }
 
-.btn-primary:disabled {
-    background-color: var(--btn-primary-disabled);
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-}
-
-/* BOTÃO SECUNDÁRIO (Cancelar) */
 .btn-secondary {
     background-color: var(--btn-sec-normal);
     color: var(--text-main);
@@ -229,10 +275,3 @@ body {
 .btn-secondary:active {
     background-color: var(--btn-sec-active);
 }
-
-.btn-secondary:disabled {
-    background-color: var(--btn-sec-disabled);
-    color: var(--btn-sec-text-disabled);
-    cursor: not-allowed;
-}
-

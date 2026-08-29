@@ -36,15 +36,48 @@
             </div>
         </header>
 
-        <main class="main-content">
-            <section class="form-container">
+        <main class="main-content" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+            
+            <aside class="demandas-list-container" style="flex: 1; min-width: 300px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <div class="form-header">
-                    <h2>Cadastrar Nova Demanda</h2>
-                    <p>Preencha os campos abaixo para registrar a demanda no sistema.</p>
+                    <h2>Demandas Recentes</h2>
+                    <p>Selecione uma demanda para editar.</p>
+                </div>
+                
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px;">
+                    <li style="border: 1px solid #ddd; padding: 15px; border-radius: 6px;">
+                        <h4 style="margin: 0 0 5px 0;">Ajustar responsividade da Home</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin: 0 0 10px 0;">Categoria: Desenvolvimento | Status: Em Andamento</p>
+                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.85rem;">
+                            Editar Demanda
+                        </button>
+                    </li>
+
+                    <li style="border: 1px solid #ddd; padding: 15px; border-radius: 6px;">
+                        <h4 style="margin: 0 0 5px 0;">Criar banners promocionais</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin: 0 0 10px 0;">Categoria: Design | Status: Pendente</p>
+                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.85rem;">
+                            Editar Demanda
+                        </button>
+                    </li>
+
+                    <li style="border: 1px solid #ddd; padding: 15px; border-radius: 6px;">
+                        <h4 style="margin: 0 0 5px 0;">Configurar automação de e-mails</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin: 0 0 10px 0;">Categoria: Marketing | Status: Pendente</p>
+                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.85rem;">
+                            Editar Demanda
+                        </button>
+                    </li>
+                </ul>
+            </aside>
+
+            <section class="form-container" style="flex: 2; min-width: 400px;">
+                <div class="form-header">
+                    <h2 id="titulo-formulario">Cadastrar Nova Demanda</h2>
+                    <p id="subtitulo-formulario">Preencha os campos abaixo para registrar a demanda no sistema.</p>
                 </div>
 
                 <form action="#" method="POST" id="demanda-form">
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="titulo">Título da Demanda <span class="required">*</span></label>
@@ -97,12 +130,12 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href='listagemDemanda.html'">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Salvar Demanda</button>
+                        <button type="button" class="btn btn-secondary" onclick="limparFormulario()">Cancelar / Novo Cadastro</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit">Salvar Demanda</button>
                     </div>
-
                 </form>
             </section>
         </main>
+
         </body>
 </html>
