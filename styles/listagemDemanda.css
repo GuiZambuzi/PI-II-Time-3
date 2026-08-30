@@ -1,0 +1,170 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+}
+
+.topo-pagina {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.topo-pagina h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: #2563eb;
+}
+
+.topo-pagina p {
+    font-size: 16px;
+    color: #000000;
+}
+
+.btn-nova-demanda {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    background-color: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.campo-busca {
+    flex: 1;
+}
+
+.campo-busca input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+}
+
+.campo-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.campo-filtro label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.campo-filtro select {
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background-color: #ffffff;
+}
+
+.tabela-container {
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 10px;
+    color: #000000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+}
+
+th {
+    padding: 15px;
+    text-align: left;
+    font-size: 14px;
+    background-color: #f8fafc;
+    color: #475569;
+}
+
+td {
+    padding: 15px;
+    font-size: 14px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.status, .prioridade {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.aberta {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.andamento {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.revisao {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.concluida {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.cancelada {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.critica {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.alta {
+    background-color: #ffedd5;
+    color: #c2410c;
+}
+
+.media {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.baixa {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.btn-visualizar {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    background-color: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+}

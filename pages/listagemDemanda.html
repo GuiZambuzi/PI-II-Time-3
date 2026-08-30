@@ -34,5 +34,140 @@
                 /></a>
             </div>
         </header>
+
+        <div class="container">
+            <div class="topo-pagina">
+                <div>
+                    <h1>Listagem de Demandas</h1>
+                    <p>Visualize e acompanhe todas as demandas cadastradas.</p>
+                </div>
+
+                <a href="cadastroDemanda.html" class="btn-nova-demanda">+ Nova Demanda</a>
+            </div>
+
+            <div class="filtros">
+                <div class="campo-busca">
+                    <input type="text" placeholder="Pesquisar demanda..."/>
+                </div>
+
+                <div class="campo-filtro">
+                    <label>Status</label>
+
+                    <select id="status">
+                        <option>Todos</option>
+                        <option>Aberta</option>
+                        <option>Em andamento</option>
+                        <option>Em revisão</option>
+                        <option>Concluída</option>
+                        <option>Cancelada</option>
+                    </select>
+                </div>
+
+                <div class="campo-filtro">
+                    <label>Prioridade</label>
+
+                    <select id="prioridade">
+                        <option>Todas</option>
+                        <option>Crítica</option>
+                        <option>Alta</option>
+                        <option>Média</option>
+                        <option>Baixa</option>
+                    </select>
+                </div>
+
+                <div class="campo-filtro">
+                    <label>Tipo</label>
+
+                    <select id="tipo">
+                        <option>Todos</option>
+                        <option>Tarefa</option>
+                        <option>Defeito</option>
+                        <option>Melhoria</option>
+                        <option>Documentação</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Prioridade</th>
+                            <th>Status</th>
+                            <th>Projeto</th>
+                            <th>Responsável</th>
+                            <th>Criação</th>
+                            <th>Prazo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>Implementar sistema de notificações</td>
+                            <td>Melhoria</td>
+                            <td><span class="prioridade alta">Alta</span></td>
+                            <td><span class="status andamento">Em andamento</span></td>
+                            <td>Portal do Cliente</td>
+                            <td>Felipe Almeida</td>
+                            <td>22/08/2026</td>
+                            <td>03/09/2026</td>
+                            <td><a href="detalhesDemanda.html" class="btn-visualizar">Visualizar</a></td>
+                        </tr>
+
+                        <tr>
+                            <td>Atualizar dados dos usuários</td>
+                            <td>Tarefa</td>
+                            <td><span class="prioridade media">Média</span></td>
+                            <td><span class="status aberta">Aberta</span></td>
+                            <td>Sistema Interno</td>
+                            <td>Bianca Nogueira</td>
+                            <td>24/08/2026</td>
+                            <td>08/09/2026</td>
+                            <td><a href="detalhesDemanda.html" class="btn-visualizar">Visualizar</a></td>
+                        </tr>
+
+                        <tr>
+                            <td>Corrigir falha no envio de e-mails</td>
+                            <td>Defeito</td>
+                            <td><span class="prioridade critica">Crítica</span></td>
+                            <td><span class="status revisao">Em revisão</span></td>
+                            <td>Portal do Cliente</td>
+                            <td>Diego Carvalho</td>
+                            <td>21/08/2026</td>
+                            <td>01/09/2026</td>
+                            <td><a href="detalhesDemanda.html" class="btn-visualizar">Visualizar</a></td>
+                        </tr>
+
+                        <tr>
+                            <td>Criar relatório mensal de atividades</td>
+                            <td>Documentação</td>
+                            <td><span class="prioridade baixa">Baixa</span></td>
+                            <td><span class="status concluida">Concluída</span></td>
+                            <td>Gestão de Projetos</td>
+                            <td>Larissa Monteiro</td>
+                            <td>15/08/2026</td>
+                            <td>29/08/2026</td>
+                            <td><a href="detalhesDemanda.html" class="btn-visualizar">Visualizar</a></td>
+                        </tr>
+
+                        <tr>
+                            <td>Otimizar consulta do banco de dados</td>
+                            <td>Melhoria</td>
+                            <td><span class="prioridade alta">Alta</span></td>
+                            <td><span class="status cancelada">Cancelada</span></td>
+                            <td>Financeiro</td>
+                            <td>Renato Vasconcelos</td>
+                            <td>17/08/2026</td>
+                            <td>27/08/2026</td>
+                            <td><a href="detalhesDemanda.html" class="btn-visualizar">Visualizar</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </body>
 </html>
