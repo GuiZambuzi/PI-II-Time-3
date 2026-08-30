@@ -1,5 +1,14 @@
+<!--
+    Arquivo: dashboard.html
+    Tela: Dashboard (Tela Inicial) do Sistema de Acompanhamento de Demandas
+    Autor exclusivo: João Pedro Barbosa da Silva (Aluno 2) - RA 25016974
+
+    Descrição: Tela inicial com um resumo das demandas cadastradas.
+    Nesta etapa (HTML/CSS, sem backend), os valores exibidos sao dados
+    ficticios (mock) apenas para demonstrar a organizacao visual da tela.
+-->
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,10 +19,11 @@
         <title>Dashboard | Demandly</title>
     </head>
     <body>
+        <!-- Cabecalho compartilhado do grupo (padrao visual definido em global.css) -->
         <header class="header">
             <div class="logo">
                 <a href="dashboard.html"
-                    ><img src="../imgs/logos/demandly_logo_white.webp" alt=""
+                    ><img src="../imgs/logos/demandly_logo_black.webp" alt="Demandly"
                 /></a>
             </div>
 
@@ -30,9 +40,213 @@
                 <a href="#perfil"
                     ><img
                         src="https://i.pinimg.com/736x/32/9b/54/329b54d07444f009b0634f438db9a449.jpg"
-                        alt=""
+                        alt="Perfil do usuário"
                 /></a>
             </div>
         </header>
+
+        <!-- Conteudo principal do dashboard -->
+        <main class="dashboard">
+            <!-- Titulo da pagina -->
+            <section class="dashboard__intro">
+                <h1 class="dashboard__title">Dashboard</h1>
+                <p class="dashboard__subtitle">
+                    Resumo geral das demandas de desenvolvimento cadastradas no sistema.
+                </p>
+            </section>
+
+            <!--
+                Bloco 1: Cartoes com os totais por status.
+                Cada cartao usa a cor do status correspondente (docs/cores.txt).
+            -->
+            <section class="cards" aria-label="Resumo por status">
+                <article class="card card--total">
+                    <span class="card__label">Total de demandas</span>
+                    <span class="card__value">48</span>
+                </article>
+
+                <article class="card card--aberta">
+                    <span class="card__label">Abertas</span>
+                    <span class="card__value">12</span>
+                </article>
+
+                <article class="card card--andamento">
+                    <span class="card__label">Em andamento</span>
+                    <span class="card__value">15</span>
+                </article>
+
+                <article class="card card--revisao">
+                    <span class="card__label">Em revisão</span>
+                    <span class="card__value">6</span>
+                </article>
+
+                <article class="card card--concluida">
+                    <span class="card__label">Concluídas</span>
+                    <span class="card__value">10</span>
+                </article>
+
+                <article class="card card--cancelada">
+                    <span class="card__label">Canceladas</span>
+                    <span class="card__value">5</span>
+                </article>
+            </section>
+
+            <!--
+                Bloco 2: Dois paineis lado a lado.
+                - Demandas por prioridade
+                - Demandas por tipo
+                As barras usam width fixo (mock) apenas para ilustrar a proporcao.
+            -->
+            <section class="panels">
+                <!-- Demandas por prioridade -->
+                <article class="panel">
+                    <h2 class="panel__title">Demandas por prioridade</h2>
+                    <ul class="bar-list">
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="badge badge--critica">Crítica</span>
+                                <span class="bar__count">6</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--critica" style="width: 12%"></div>
+                            </div>
+                        </li>
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="badge badge--alta">Alta</span>
+                                <span class="bar__count">14</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--alta" style="width: 29%"></div>
+                            </div>
+                        </li>
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="badge badge--media">Média</span>
+                                <span class="bar__count">20</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--media" style="width: 42%"></div>
+                            </div>
+                        </li>
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="badge badge--baixa">Baixa</span>
+                                <span class="bar__count">8</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--baixa" style="width: 17%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </article>
+
+                <!-- Demandas por tipo -->
+                <article class="panel">
+                    <h2 class="panel__title">Demandas por tipo</h2>
+                    <ul class="bar-list">
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="bar__type">📝 Tarefa</span>
+                                <span class="bar__count">18</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--tipo" style="width: 38%"></div>
+                            </div>
+                        </li>
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="bar__type">🐛 Defeito</span>
+                                <span class="bar__count">12</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--tipo" style="width: 25%"></div>
+                            </div>
+                        </li>
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="bar__type">✨ Melhoria</span>
+                                <span class="bar__count">11</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--tipo" style="width: 23%"></div>
+                            </div>
+                        </li>
+                        <li class="bar">
+                            <div class="bar__head">
+                                <span class="bar__type">📄 Documentação</span>
+                                <span class="bar__count">7</span>
+                            </div>
+                            <div class="bar__track">
+                                <div class="bar__fill bar__fill--tipo" style="width: 14%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </article>
+            </section>
+
+            <!--
+                Bloco 3: Duas listas de acompanhamento.
+                - Demandas criticas em aberto
+                - Demandas proximas do prazo de finalizacao
+            -->
+            <section class="panels">
+                <!-- Demandas criticas em aberto -->
+                <article class="panel">
+                    <h2 class="panel__title">Demandas críticas em aberto</h2>
+                    <ul class="demand-list">
+                        <li class="demand">
+                            <div class="demand__info">
+                                <span class="demand__title">Falha no login com senha correta</span>
+                                <span class="demand__meta">#1042 · Portal do Cliente</span>
+                            </div>
+                            <span class="badge badge--critica">Crítica</span>
+                        </li>
+                        <li class="demand">
+                            <div class="demand__info">
+                                <span class="demand__title">Pagamento não confirma no checkout</span>
+                                <span class="demand__meta">#1038 · App Vendas</span>
+                            </div>
+                            <span class="badge badge--critica">Crítica</span>
+                        </li>
+                        <li class="demand">
+                            <div class="demand__info">
+                                <span class="demand__title">Relatório mensal gera valores errados</span>
+                                <span class="demand__meta">#1025 · Financeiro</span>
+                            </div>
+                            <span class="badge badge--critica">Crítica</span>
+                        </li>
+                    </ul>
+                </article>
+
+                <!-- Demandas proximas do prazo -->
+                <article class="panel">
+                    <h2 class="panel__title">Próximas do prazo</h2>
+                    <ul class="demand-list">
+                        <li class="demand">
+                            <div class="demand__info">
+                                <span class="demand__title">Ajustar layout responsivo do menu</span>
+                                <span class="demand__meta">#1051 · Portal do Cliente</span>
+                            </div>
+                            <span class="deadline deadline--urgent">Vence hoje</span>
+                        </li>
+                        <li class="demand">
+                            <div class="demand__info">
+                                <span class="demand__title">Documentar endpoints da API</span>
+                                <span class="demand__meta">#1047 · Backend</span>
+                            </div>
+                            <span class="deadline">01/09/2026</span>
+                        </li>
+                        <li class="demand">
+                            <div class="demand__info">
+                                <span class="demand__title">Exportar demandas em CSV</span>
+                                <span class="demand__meta">#1044 · App Vendas</span>
+                            </div>
+                            <span class="deadline">03/09/2026</span>
+                        </li>
+                    </ul>
+                </article>
+            </section>
+        </main>
     </body>
 </html>

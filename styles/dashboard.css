@@ -1,0 +1,320 @@
+/*
+    Arquivo: dashboard.css
+    Estilos da tela Dashboard (Tela Inicial)
+    Autor exclusivo: João Pedro Barbosa da Silva (Aluno 2) - RA 25016974
+
+    Observacao: as cores seguem o padrao visual do grupo definido em
+    docs/cores.txt. As variaveis abaixo centralizam essas cores para
+    facilitar a manutencao.
+*/
+
+/* Paleta do grupo (docs/cores.txt) reunida em variaveis para reutilizacao */
+:root {
+    --cor-primaria: #2563eb;
+    --cor-primaria-escura: #1d4ed8;
+    --cor-fundo-card: #ffffff;
+    --cor-borda: #e2e8f0;
+    --cor-texto: #1e293b;
+    --cor-texto-secundario: #64748b;
+
+    /* Cores de status das demandas */
+    --status-aberta: #1e40af;
+    --status-andamento: #92400e;
+    --status-revisao: #5b21b6;
+    --status-concluida: #065f46;
+    --status-cancelada: #991b1b;
+
+    /* Cores de prioridade (fundo | texto) */
+    --prio-critica-bg: #fee2e2;
+    --prio-critica-tx: #991b1b;
+    --prio-alta-bg: #ffedd5;
+    --prio-alta-tx: #9a3412;
+    --prio-media-bg: #fef9c3;
+    --prio-media-tx: #854d0e;
+    --prio-baixa-bg: #dcfce7;
+    --prio-baixa-tx: #166534;
+}
+
+/*
+    O global.css centraliza o body com flexbox (usado na tela de login).
+    Para o dashboard precisamos de uma pagina que empilha o conteudo abaixo
+    do header, entao sobrescrevemos o body apenas nesta tela.
+*/
+body {
+    display: block;
+    color: var(--cor-texto);
+}
+
+/* Container principal do conteudo do dashboard */
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+}
+
+/* Titulo e subtitulo da pagina */
+.dashboard__intro {
+    margin-bottom: 28px;
+}
+
+.dashboard__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--cor-texto);
+}
+
+.dashboard__subtitle {
+    margin-top: 6px;
+    font-size: 15px;
+    color: var(--cor-texto-secundario);
+}
+
+/* -------------------------------------------------------------
+   Bloco 1: Cartoes de resumo por status
+   ------------------------------------------------------------- */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.card {
+    background: var(--cor-fundo-card);
+    border: 1px solid var(--cor-borda);
+    border-left: 5px solid var(--cor-texto-secundario);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+}
+
+.card__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cor-texto-secundario);
+}
+
+.card__value {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--cor-texto);
+    line-height: 1;
+}
+
+/* Cor da borda esquerda de cada cartao conforme o status */
+.card--total {
+    border-left-color: var(--cor-primaria);
+}
+.card--aberta {
+    border-left-color: var(--status-aberta);
+}
+.card--andamento {
+    border-left-color: var(--status-andamento);
+}
+.card--revisao {
+    border-left-color: var(--status-revisao);
+}
+.card--concluida {
+    border-left-color: var(--status-concluida);
+}
+.card--cancelada {
+    border-left-color: var(--status-cancelada);
+}
+
+/* -------------------------------------------------------------
+   Bloco 2 e 3: Paineis (por prioridade, por tipo e listas)
+   ------------------------------------------------------------- */
+.panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.panel {
+    background: var(--cor-fundo-card);
+    border: 1px solid var(--cor-borda);
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.panel__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--cor-texto);
+    margin-bottom: 18px;
+}
+
+/* --- Barras (por prioridade / por tipo) --- */
+.bar-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bar__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.bar__type {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cor-texto);
+}
+
+.bar__count {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cor-texto);
+}
+
+/* Trilho e preenchimento das barras */
+.bar__track {
+    width: 100%;
+    height: 10px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.bar__fill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.bar__fill--critica {
+    background: #ef4444;
+}
+.bar__fill--alta {
+    background: #f97316;
+}
+.bar__fill--media {
+    background: #eab308;
+}
+.bar__fill--baixa {
+    background: #22c55e;
+}
+.bar__fill--tipo {
+    background: linear-gradient(90deg, var(--cor-primaria), var(--cor-primaria-escura));
+}
+
+/* --- Selos/badges de prioridade --- */
+.badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.badge--critica {
+    background: var(--prio-critica-bg);
+    color: var(--prio-critica-tx);
+}
+.badge--alta {
+    background: var(--prio-alta-bg);
+    color: var(--prio-alta-tx);
+}
+.badge--media {
+    background: var(--prio-media-bg);
+    color: var(--prio-media-tx);
+}
+.badge--baixa {
+    background: var(--prio-baixa-bg);
+    color: var(--prio-baixa-tx);
+}
+
+/* --- Listas de demandas (criticas em aberto / proximas do prazo) --- */
+.demand-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.demand {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.demand:last-child {
+    border-bottom: none;
+}
+
+.demand__info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.demand__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cor-texto);
+}
+
+.demand__meta {
+    font-size: 12px;
+    color: var(--cor-texto-secundario);
+}
+
+/* Etiqueta de prazo */
+.deadline {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cor-texto-secundario);
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.deadline--urgent {
+    color: var(--prio-critica-tx);
+    background: var(--prio-critica-bg);
+}
+
+/* -------------------------------------------------------------
+   Responsividade
+   ------------------------------------------------------------- */
+@media (max-width: 900px) {
+    .cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .panels {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dashboard {
+        padding: 28px 16px 48px;
+    }
+}
