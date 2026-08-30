@@ -1,0 +1,158 @@
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+}
+
+.topoPagina {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.voltar {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.topoPagina h1 {
+    margin-top: 10px;
+    color: #1e293b;
+    font-size: 30px;
+}
+
+.btnEditar {
+    padding: 10px 18px;
+    border-radius: 7px;
+    background-color: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.card {
+    margin-bottom: 25px;
+    padding: 25px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.card h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+    font-size: 20px;
+}
+
+.descricao {
+    margin-bottom: 25px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.informacoes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.informacoes div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.informacoes span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.informacoes strong {
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.status,
+.prioridade {
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px !important;
+}
+
+.andamento {
+    background-color: #fef3c7;
+    color: #92400e !important;
+}
+
+.alta {
+    background-color: #ffedd5;
+    color: #9a3412 !important;
+}
+
+.acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btnStatus,
+.btnComentario {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 7px;
+    background-color: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.btnCancelar {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 7px;
+    background-color: #ef4444;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.comentario {
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.comentario p {
+    margin-top: 10px;
+    color: #64748b;
+}
+.comentario strong {
+    color: #1e293b;
+}
+
+.novoComentario {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.novoComentario textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    resize: vertical;
+    font-family: inherit;
+}
+.historico p {
+    padding: 12px 0;
+    border-bottom: 1px solid #e2e8f0;
+    color: #64748b;
+}
