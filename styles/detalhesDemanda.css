@@ -84,17 +84,17 @@ body {
     width: fit-content;
     padding: 6px 10px;
     border-radius: 20px;
-    font-size: 12px !important;
+    font-size: 12px;
 }
 
 .andamento {
     background-color: #fef3c7;
-    color: #92400e !important;
+    color: #92400e;
 }
 
 .alta {
     background-color: #ffedd5;
-    color: #9a3412 !important;
+    color: #9a3412;
 }
 
 .acoes {
