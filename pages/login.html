@@ -8,6 +8,8 @@
 
         <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
         <title>Login | Demandly</title>
+
+        <script src="../javascript/login.js" defer></script>
     </head>
     <body>
 
@@ -25,16 +27,20 @@
                 <h1>Bem-vindo de volta</h1>
                 <p class="subtitle">Entre para acompanhar suas demandas.</p>
 
-                <form>
+                <form id="formLogin" novalidate>
 
                     <div class="container-field">
                         <label for="email">E-mail</label>
-                        <input type="email" id="email" placeholder="email@empresa.com">
+                        <input type="email" id="email" name="email" required autocomplete="email" placeholder="email@empresa.com">
+                        <div id="erroEmail" class="invalid-feedback"></div>
                     </div>
 
                     <div class="container-field">
                         <label for="password">Senha</label>
-                        <input type="password" id="password" placeholder="Sua senha">
+                        <input type="password" id="password" name="password" placeholder="Sua senha">
+                        <button type="button" id="togglePassword" class="password-toggle" aria-controls="password" aria-label="Mostrar senha">Mostrar</button>
+                        <div class="form-text">Mínimo de 8 caracteres, uma maiúscula e um número.</div>
+                        <div id="erroPassword" class="invalid-feedback"></div>
                     </div>
 
                     <div class="row-between">
@@ -45,7 +51,7 @@
                         <a href="#">Esqueci minha senha</a>
                     </div>
 
-                    <a href="dashboard.html" class="btn-primary">Entrar</a>
+                    <button type="submit" class="btn-primary">Entrar</button>
                 </form>
 
             </div>
