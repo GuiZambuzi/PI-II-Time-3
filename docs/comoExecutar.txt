@@ -1,0 +1,28 @@
+na pasta raiz do projeto
+escreve no terminal 
+npm i
+
+dps da um cd backend
+ai no terminal dnv 
+npm i 
+
+dps acessa o cd ../frontend
+ai no terminal dnv
+npm i
+
+depois volta pra pasta raiz cd ..
+e digita no terminal
+npm run dev
+
+o back end ta na porta 3000
+o front ne porta 5173
+
+no terminal aparece a rota mas para ver as coisas e so acessar
+http://localhost:5173/
+
+quando voce atualiza vai sozinho
+
+o backend tambem, esta com nodemon entao quando vc altera
+alguma coisa o servidor reinicia sozinho
+
+pra para o servidor so aperta Ctrl + C padrao
