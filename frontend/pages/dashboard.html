@@ -17,6 +17,9 @@
 
         <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
         <title>Dashboard | Demandly</title>
+
+        <!-- Script com as validacoes e o comportamento dos filtros (defer: roda apos o HTML) -->
+        <script src="../scripts/dashboard.js" defer></script>
     </head>
     <body>
         <!-- Cabecalho compartilhado do grupo (padrao visual definido em global.css) -->
@@ -53,6 +56,97 @@
                     Resumo geral das demandas de desenvolvimento cadastradas no sistema.
                 </p>
             </section>
+
+            <!--
+                Painel de filtros do dashboard.
+                Da ao usuario campos para filtrar as demandas exibidas nas listas.
+                Todos os campos passam por validacao em JavaScript (scripts/dashboard.js)
+                antes de o filtro ser aplicado (Reuniao 3 - validacoes).
+                O atributo novalidate desativa a validacao nativa do navegador para
+                usarmos nossas proprias mensagens de erro.
+            -->
+            <form id="formFiltros" class="filtros" novalidate>
+                <!-- Busca por texto (titulo/descricao da demanda) -->
+                <div class="filtros__campo filtros__campo--busca">
+                    <label for="filtroBusca">Buscar</label>
+                    <input
+                        type="search"
+                        id="filtroBusca"
+                        name="busca"
+                        placeholder="Título ou descrição da demanda"
+                        maxlength="60"
+                    />
+                    <div id="erroBusca" class="invalid-feedback"></div>
+                </div>
+
+                <!-- Filtro por status (apenas os status previstos no escopo) -->
+                <div class="filtros__campo">
+                    <label for="filtroStatus">Status</label>
+                    <select id="filtroStatus" name="status">
+                        <option value="">Todos</option>
+                        <option value="Aberta">Aberta</option>
+                        <option value="Em andamento">Em andamento</option>
+                        <option value="Em revisão">Em revisão</option>
+                        <option value="Concluída">Concluída</option>
+                        <option value="Cancelada">Cancelada</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por prioridade (apenas as prioridades previstas no escopo) -->
+                <div class="filtros__campo">
+                    <label for="filtroPrioridade">Prioridade</label>
+                    <select id="filtroPrioridade" name="prioridade">
+                        <option value="">Todas</option>
+                        <option value="Crítica">Crítica</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Média">Média</option>
+                        <option value="Baixa">Baixa</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por tipo (apenas os tipos previstos no escopo) -->
+                <div class="filtros__campo">
+                    <label for="filtroTipo">Tipo</label>
+                    <select id="filtroTipo" name="tipo">
+                        <option value="">Todos</option>
+                        <option value="Tarefa">Tarefa</option>
+                        <option value="Defeito">Defeito</option>
+                        <option value="Melhoria">Melhoria</option>
+                        <option value="Documentação">Documentação</option>
+                    </select>
+                </div>
+
+                <!-- Periodo por prazo de finalizacao: data inicio e data fim -->
+                <div class="filtros__campo">
+                    <label for="filtroDataInicio">Prazo de</label>
+                    <input type="date" id="filtroDataInicio" name="dataInicio" />
+                </div>
+
+                <div class="filtros__campo">
+                    <label for="filtroDataFim">Prazo até</label>
+                    <input type="date" id="filtroDataFim" name="dataFim" />
+                </div>
+
+                <!-- Mensagem de erro compartilhada pelo periodo de datas -->
+                <div id="erroData" class="invalid-feedback filtros__erro-data"></div>
+
+                <!-- Botoes de acao do formulario -->
+                <div class="filtros__acoes">
+                    <button type="submit" class="btn-primary">Aplicar filtros</button>
+                    <button type="reset" class="btn-secondary" id="botaoLimpar">Limpar</button>
+                </div>
+            </form>
+
+            <!--
+                Area de feedback do filtro:
+                - chip com o resumo dos filtros aplicados;
+                - mensagem exibida quando nenhuma demanda corresponde ao filtro.
+                Ambos comecam ocultos e sao controlados pelo JavaScript.
+            -->
+            <div id="filtrosAplicados" class="filtros-aplicados" hidden></div>
+            <p id="semResultados" class="sem-resultados" hidden>
+                Nenhuma demanda encontrada para os filtros selecionados.
+            </p>
 
             <!--
                 Bloco 1: Cartoes com os totais por status.
@@ -194,14 +288,28 @@
                 <article class="panel">
                     <h2 class="panel__title">Demandas críticas em aberto</h2>
                     <ul class="demand-list">
-                        <li class="demand">
+                        <li
+                            class="demand"
+                            data-titulo="Falha no login com senha correta"
+                            data-status="Aberta"
+                            data-prioridade="Crítica"
+                            data-tipo="Defeito"
+                            data-prazo="2026-09-25"
+                        >
                             <div class="demand__info">
                                 <span class="demand__title">Falha no login com senha correta</span>
                                 <span class="demand__meta">#1042 · Portal do Cliente</span>
                             </div>
                             <span class="badge badge--critica">Crítica</span>
                         </li>
-                        <li class="demand">
+                        <li
+                            class="demand"
+                            data-titulo="Pagamento não confirma no checkout"
+                            data-status="Aberta"
+                            data-prioridade="Crítica"
+                            data-tipo="Defeito"
+                            data-prazo="2026-10-15"
+                        >
                             <div class="demand__info">
                                 <span class="demand__title"
                                     >Pagamento não confirma no checkout</span
@@ -210,7 +318,14 @@
                             </div>
                             <span class="badge badge--critica">Crítica</span>
                         </li>
-                        <li class="demand">
+                        <li
+                            class="demand"
+                            data-titulo="Relatório mensal gera valores errados"
+                            data-status="Aberta"
+                            data-prioridade="Crítica"
+                            data-tipo="Defeito"
+                            data-prazo="2026-11-05"
+                        >
                             <div class="demand__info">
                                 <span class="demand__title"
                                     >Relatório mensal gera valores errados</span
@@ -226,26 +341,47 @@
                 <article class="panel">
                     <h2 class="panel__title">Próximas do prazo</h2>
                     <ul class="demand-list">
-                        <li class="demand">
+                        <li
+                            class="demand"
+                            data-titulo="Ajustar layout responsivo do menu"
+                            data-status="Em andamento"
+                            data-prioridade="Alta"
+                            data-tipo="Melhoria"
+                            data-prazo="2026-09-20"
+                        >
                             <div class="demand__info">
                                 <span class="demand__title">Ajustar layout responsivo do menu</span>
                                 <span class="demand__meta">#1051 · Portal do Cliente</span>
                             </div>
                             <span class="deadline deadline--urgent">Vence hoje</span>
                         </li>
-                        <li class="demand">
+                        <li
+                            class="demand"
+                            data-titulo="Documentar endpoints da API"
+                            data-status="Em andamento"
+                            data-prioridade="Média"
+                            data-tipo="Documentação"
+                            data-prazo="2026-09-22"
+                        >
                             <div class="demand__info">
                                 <span class="demand__title">Documentar endpoints da API</span>
                                 <span class="demand__meta">#1047 · Backend</span>
                             </div>
-                            <span class="deadline">01/09/2026</span>
+                            <span class="deadline">22/09/2026</span>
                         </li>
-                        <li class="demand">
+                        <li
+                            class="demand"
+                            data-titulo="Exportar demandas em CSV"
+                            data-status="Aberta"
+                            data-prioridade="Baixa"
+                            data-tipo="Tarefa"
+                            data-prazo="2026-09-24"
+                        >
                             <div class="demand__info">
                                 <span class="demand__title">Exportar demandas em CSV</span>
                                 <span class="demand__meta">#1044 · App Vendas</span>
                             </div>
-                            <span class="deadline">03/09/2026</span>
+                            <span class="deadline">24/09/2026</span>
                         </li>
                     </ul>
                 </article>

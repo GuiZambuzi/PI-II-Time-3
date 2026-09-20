@@ -299,6 +299,163 @@ body {
 }
 
 /* -------------------------------------------------------------
+   Painel de filtros (Reuniao 3 - validacoes em JavaScript)
+   ------------------------------------------------------------- */
+.filtros {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr) 1fr 1fr;
+    gap: 14px 16px;
+    align-items: end;
+    background: var(--cor-fundo-card);
+    border: 1px solid var(--cor-borda);
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    margin-bottom: 20px;
+}
+
+/* Cada campo do filtro (rotulo + controle + mensagem de erro) */
+.filtros__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.filtros__campo label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cor-texto-secundario);
+}
+
+/* Aparencia comum de inputs e selects */
+.filtros input,
+.filtros select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--cor-texto);
+    background: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 9px 11px;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.filtros input:focus,
+.filtros select:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Botoes de acao ocupam a linha inteira, alinhados a direita */
+.filtros__acoes {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Botao primario (Aplicar) - cores de docs/cores.txt */
+.btn-primary {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--cor-primaria);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-primary:hover {
+    background: var(--cor-primaria-escura);
+}
+
+.btn-primary:active {
+    background: #1e40af;
+}
+
+/* Botao secundario (Limpar) - cores de docs/cores.txt */
+.btn-secondary {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cor-texto);
+    background: #f1f5f9;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* -------------------------------------------------------------
+   Estados de erro de validacao (mesmos nomes usados no login.js)
+   ------------------------------------------------------------- */
+.filtros .is-invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.invalid-feedback {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ef4444;
+    min-height: 0;
+}
+
+/* A mensagem de erro do periodo ocupa a largura das duas datas */
+.filtros__erro-data {
+    grid-column: 5 / 7;
+    margin-top: -6px;
+}
+
+/*
+    Garante que o atributo "hidden" realmente oculte estes elementos.
+    Necessario porque a regra .demand { display: flex } (regra de autor)
+    sobrepoe o padrao do navegador [hidden] { display: none }.
+*/
+.demand[hidden],
+.filtros-aplicados[hidden],
+.sem-resultados[hidden] {
+    display: none !important;
+}
+
+/* -------------------------------------------------------------
+   Feedback do resultado do filtro
+   ------------------------------------------------------------- */
+.filtros-aplicados {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--status-aberta);
+    background: #dbeafe;
+    border-radius: 999px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+}
+
+.sem-resultados {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--prio-critica-tx);
+    background: var(--prio-critica-bg);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+}
+
+/* -------------------------------------------------------------
    Responsividade
    ------------------------------------------------------------- */
 @media (max-width: 900px) {
@@ -308,6 +465,16 @@ body {
     .panels {
         grid-template-columns: 1fr;
     }
+    /* Filtros passam a ocupar duas colunas em telas medias */
+    .filtros {
+        grid-template-columns: 1fr 1fr;
+    }
+    .filtros__campo--busca {
+        grid-column: 1 / -1;
+    }
+    .filtros__erro-data {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 560px) {
@@ -316,5 +483,16 @@ body {
     }
     .dashboard {
         padding: 28px 16px 48px;
+    }
+    /* Em telas estreitas, cada campo do filtro ocupa a linha inteira */
+    .filtros {
+        grid-template-columns: 1fr;
+    }
+    .filtros__acoes {
+        flex-direction: column-reverse;
+    }
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
     }
 }
