@@ -1,3 +1,25 @@
+<!--
+    Feito por Rafael França Cardoso
+
+    Esta página é responsável pela listagem de demandas do sistema.
+
+    Cabeçalho:
+    Exibe o logo, menu de navegação e perfil do usuário.
+
+    Filtros:
+    Permite pesquisar e filtrar demandas por status, prioridade e tipo.
+
+    Ordenação:
+    Permite organizar as demandas por prioridade, data de criação,
+    prazo de finalização ou status.
+
+    Tabela:
+    Exibe as informações das demandas cadastradas e suas ações.
+
+    Mensagem:
+    Exibe uma mensagem quando nenhuma demanda é encontrada.
+-->
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -8,6 +30,8 @@
 
         <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
         <title>Listagem de Demandas| Demandly</title>
+
+        <script src="../scripts/listagemDemanda.js" defer></script>
     </head>
     <body>
         <header class="header">
@@ -46,19 +70,18 @@
 
             <div class="filtros">
                 <div class="campo-busca">
-                    <input type="text" placeholder="Pesquisar demanda..." />
+                    <input type="text" id="busca" placeholder="Pesquisar demanda..." />
                 </div>
 
                 <div class="campo-filtro">
-                    <label>Status</label>
+                    <label>Tipo</label>
 
-                    <select id="status">
+                    <select id="tipo">
                         <option>Todos</option>
-                        <option>Aberta</option>
-                        <option>Em andamento</option>
-                        <option>Em revisão</option>
-                        <option>Concluída</option>
-                        <option>Cancelada</option>
+                        <option>Tarefa</option>
+                        <option>Defeito</option>
+                        <option>Melhoria</option>
+                        <option>Documentação</option>
                     </select>
                 </div>
 
@@ -75,16 +98,34 @@
                 </div>
 
                 <div class="campo-filtro">
-                    <label>Tipo</label>
+                    <label>Status</label>
 
-                    <select id="tipo">
+                    <select id="status">
                         <option>Todos</option>
-                        <option>Tarefa</option>
-                        <option>Defeito</option>
-                        <option>Melhoria</option>
-                        <option>Documentação</option>
+                        <option>Aberta</option>
+                        <option>Em andamento</option>
+                        <option>Em revisão</option>
+                        <option>Concluída</option>
+                        <option>Cancelada</option>
                     </select>
                 </div>
+
+                <div class="campo-filtro">
+                    <label>Ordenar por</label>
+                    <select id="ordenacao">
+                        <option value="nenhuma">Nenhuma</option>
+                        <option value="prioridade">Prioridade</option>
+                        <option value="status">Status</option>
+                        <option value="criacao">Data de criação</option>
+                        <option value="prazo">Prazo de finalização</option>
+                    </select>
+                </div>
+
+                <button type="button" id="btn-filtrar">Filtrar</button>
+            </div>
+
+            <div class="area-resetar">
+                <button type="button" id="btn-resetar">Limpar filtros</button>
             </div>
 
             <div class="tabela-container">
@@ -175,6 +216,9 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <p id="sem-resultados">Nenhuma demanda encontrada.</p>
+
             </div>
         </div>
     </body>

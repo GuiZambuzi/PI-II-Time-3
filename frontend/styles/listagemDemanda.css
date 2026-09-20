@@ -1,8 +1,34 @@
+/*
+    Feito por Rafael França Cardoso
+
+    Este arquivo contém os estilos específicos da página de Listagem de Demandas.
+
+    Estrutura:
+    Define o posicionamento e o espaçamento dos elementos da página.
+
+    Filtros:
+    Estiliza o campo de pesquisa, filtros, botão de filtragem e botão de reset.
+
+    Tabela:
+    Define a aparência da tabela, linhas, colunas e efeitos ao passar o mouse.
+
+    Status e prioridade:
+    Define as cores e estilos das etiquetas de status e prioridade.
+
+    Botões:
+    Define a aparência dos botões da página e seus efeitos ao passar o mouse.
+
+    Mensagem:
+    Define a aparência da mensagem exibida quando não existem resultados.
+*/
+
 body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 100px;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f4f7f9;
 }
 
 .container {
@@ -27,7 +53,7 @@ body {
 
 .topo-pagina p {
     font-size: 16px;
-    color: #000000;
+    color: #64748b;
 }
 
 .btn-nova-demanda {
@@ -37,6 +63,13 @@ body {
     background-color: #2563eb;
     color: #ffffff;
     text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-nova-demanda:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
 }
 
 .filtros {
@@ -47,7 +80,7 @@ body {
     margin-bottom: 25px;
     background-color: #ffffff;
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
 }
 
 .campo-busca {
@@ -59,6 +92,13 @@ body {
     padding: 12px;
     border: 1px solid #cbd5e1;
     border-radius: 7px;
+    transition: 0.3s;
+}
+
+.campo-busca input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .campo-filtro {
@@ -78,6 +118,56 @@ body {
     border: 1px solid #cbd5e1;
     border-radius: 7px;
     background-color: #ffffff;
+    transition: 0.3s;
+}
+
+.campo-filtro select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+#btn-filtrar {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#btn-filtrar:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
+}
+
+.area-resetar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -15px;
+    margin-bottom: 15px;
+}
+
+#btn-resetar {
+    display: none;
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: bold;
+    background-color: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#btn-resetar:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
 }
 
 .tabela-container {
@@ -85,7 +175,8 @@ body {
     background-color: #ffffff;
     border-radius: 10px;
     color: #000000;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    overflow-x: auto;
 }
 
 table {
@@ -104,6 +195,15 @@ td {
     padding: 15px;
     font-size: 14px;
     border-top: 1px solid #e2e8f0;
+    transition: 0.2s;
+}
+
+tbody tr {
+    transition: 0.2s;
+}
+
+tbody tr:hover {
+    background-color: #f8fafc;
 }
 
 .status, .prioridade {
@@ -167,4 +267,19 @@ td {
     background-color: #2563eb;
     color: #ffffff;
     text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-visualizar:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+#sem-resultados {
+    display: none;
+    padding: 30px;
+    text-align: center;
+    color: #475569;
+    font-size: 14px;
 }
