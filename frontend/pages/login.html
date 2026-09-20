@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../styles/global.css" />
+        <link rel="stylesheet" href="../styles/login.css" />
+
+        <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
+        <title>Login | Demandly</title>
+
+        <script src="../scripts/login.js" defer></script>
+    </head>
+    <body>
+
+        <div class="container-form-all">
+
+            <div class="container-form-wrap">
+
+                <div class="container-brand">
+                    <div class="brand-mark">
+                        <img src="../imgs/logos/demandly_icon_black.webp"/>
+                    </div>
+                    <span class="brand-name">Demandly</span>
+                </div>
+
+                <h1>Bem-vindo de volta</h1>
+                <p class="subtitle">Entre para acompanhar suas demandas.</p>
+
+                <form id="formLogin" novalidate>
+
+                    <div class="container-field">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" required autocomplete="email" placeholder="email@empresa.com">
+                        <div id="erroEmail" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="container-field">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" placeholder="Sua senha">
+                        <button type="button" id="togglePassword" class="password-toggle" aria-controls="password" aria-label="Mostrar senha">Mostrar</button>
+                        <div class="form-text">Mínimo de 8 caracteres, uma maiúscula e um número.</div>
+                        <div id="erroPassword" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="row-between">
+                        <label class="remember">
+                            <input type="checkbox">
+                            Lembrar-me
+                        </label>
+                        <a href="#">Esqueci minha senha</a>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Entrar</button>
+                </form>
+
+            </div>
+
+        </div>
+
+    </body>
+</html>

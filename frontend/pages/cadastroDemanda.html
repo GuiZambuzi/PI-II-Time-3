@@ -22,7 +22,6 @@
                     <a href="dashboard.html">Dashboard</a>
                     <a href="listagemDemanda.html">Listagem de Demandas</a>
                     <a href="cadastroDemanda.html">Cadastro/Edição de Demanda</a>
-                    <a href="detalhesDemanda.html">Detalhes da Demanda</a>
                 </nav>
             </div>
 
@@ -37,20 +36,27 @@
         </header>
 
         <main class="main-content">
-            
-           
-
             <section class="form-container">
                 <div class="form-header">
                     <h2 id="titulo-formulario">Cadastrar Nova Demanda</h2>
-                    <p id="subtitulo-formulario">Preencha os campos abaixo para registrar a demanda no sistema.</p>
+                    <p id="subtitulo-formulario">
+                        Preencha os campos abaixo para registrar a demanda no sistema.
+                    </p>
                 </div>
 
                 <form action="#" method="POST" id="demanda-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="titulo">Título da Demanda <span class="required">*</span></label>
-                            <input type="text" id="titulo" name="titulo" placeholder="Ex: Criação de nova landing page" required />
+                            <label for="titulo"
+                                >Título da Demanda <span class="required">*</span></label
+                            >
+                            <input
+                                type="text"
+                                id="titulo"
+                                name="titulo"
+                                placeholder="Ex: Criação de nova landing page"
+                                required
+                            />
                         </div>
                     </div>
 
@@ -58,7 +64,9 @@
                         <div class="form-group">
                             <label for="categoria">Categoria <span class="required">*</span></label>
                             <select id="categoria" name="categoria" required>
-                                <option value="" disabled selected>Selecione uma categoria...</option>
+                                <option value="" disabled selected>
+                                    Selecione uma categoria...
+                                </option>
                                 <option value="desenvolvimento">Desenvolvimento</option>
                                 <option value="design">Design</option>
                                 <option value="marketing">Marketing</option>
@@ -79,7 +87,7 @@
                             <label for="prazo">Prazo Limite</label>
                             <input type="date" id="prazo" name="prazo" />
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="status">Status</label>
                             <select id="status" name="status">
@@ -93,14 +101,24 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="descricao">Descrição Detalhada <span class="required">*</span></label>
-                            <textarea id="descricao" name="descricao" rows="6" placeholder="Descreva o que precisa ser feito com o máximo de detalhes..." required></textarea>
+                            <label for="descricao"
+                                >Descrição Detalhada <span class="required">*</span></label
+                            >
+                            <textarea
+                                id="descricao"
+                                name="descricao"
+                                rows="6"
+                                placeholder="Descreva o que precisa ser feito com o máximo de detalhes..."
+                                required
+                            ></textarea>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" >Cancelar</button>
-                        <button type="submit" class="btn btn-primary" id="btn-submit">Salvar Demanda</button>
+                        <button type="button" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit">
+                            Salvar Demanda
+                        </button>
                     </div>
                 </form>
             </section>
@@ -113,28 +131,47 @@
                 </div>
 
                 <form action="#" method="POST" id="demanda-form-edicao">
-                    
                     <!-- NOVA LINHA: Campos exclusivos de edição (Bloqueados) -->
                     <div class="form-row multiple-columns">
                         <div class="form-group">
                             <label for="id-demanda">ID da Demanda</label>
                             <!-- Usando a classe campo-bloqueado e o atributo readonly -->
-                            <input type="text" id="id-demanda" value="#0042" class="campo-bloqueado" readonly />
+                            <input
+                                type="text"
+                                id="id-demanda"
+                                value="#0042"
+                                class="campo-bloqueado"
+                                readonly
+                            />
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="data-criacao">Data de Criação</label>
                             <!-- Usando a classe campo-bloqueado e o atributo readonly -->
-                            <input type="text" id="data-criacao" value="28/08/2026" class="campo-bloqueado" readonly />
+                            <input
+                                type="text"
+                                id="data-criacao"
+                                value="28/08/2026"
+                                class="campo-bloqueado"
+                                readonly
+                            />
                         </div>
                     </div>
 
                     <!-- Campos normais editáveis (mesmo padrão da criação) -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="titulo">Título da Demanda <span class="required">*</span></label>
+                            <label for="titulo"
+                                >Título da Demanda <span class="required">*</span></label
+                            >
                             <!-- O input normal usa o value="" para trazer o dado do banco -->
-                            <input type="text" id="titulo" name="titulo" value="Ajustar responsividade da Home" required />
+                            <input
+                                type="text"
+                                id="titulo"
+                                name="titulo"
+                                value="Ajustar responsividade da Home"
+                                required
+                            />
                         </div>
                     </div>
 
@@ -163,21 +200,36 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="descricao">Descrição Detalhada <span class="required">*</span></label>
-                            <textarea id="descricao" name="descricao" rows="6" required>O menu superior está quebrando em telas menores que 768px. Precisamos ajustar o Flexbox do header.</textarea>
+                            <label for="descricao"
+                                >Descrição Detalhada <span class="required">*</span></label
+                            >
+                            <textarea id="descricao" name="descricao" rows="6" required>
+O menu superior está quebrando em telas menores que 768px. Precisamos ajustar o Flexbox do header.</textarea
+                            >
                         </div>
                     </div>
 
                     <div class="form-actions">
                         <!-- Em uma edição, podemos ter um botão de deletar (opcional) -->
-                        <button type="button" class="btn btn-secondary" style="margin-right: auto; color: var(--btn-danger-normal); border-color: var(--btn-danger-normal);">Excluir Demanda</button>
-                        
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            style="
+                                margin-right: auto;
+                                color: var(--btn-danger-normal);
+                                border-color: var(--btn-danger-normal);
+                            "
+                        >
+                            Excluir Demanda
+                        </button>
+
                         <button type="button" class="btn btn-secondary">Cancelar</button>
-                        <button type="submit" class="btn btn-primary" id="btn-submit">Salvar Alterações</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit">
+                            Salvar Alterações
+                        </button>
                     </div>
                 </form>
             </section>
         </main>
-
     </body>
 </html>
