@@ -4,17 +4,21 @@
     "description": "",
     "main": "src/server.js",
     "scripts": {
-        "start": "node src/server.js",
-        "dev": "nodemon src/server.js"
+        "build": "tsc",
+        "start": "node ./lib/server.js",
+        "dev": "tsc-watch --onSuccess \"node ./lib/server.js\""
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "type": "commonjs",
     "dependencies": {
         "express": "^5.2.1"
     },
     "devDependencies": {
-        "nodemon": "^3.1.14"
+        "@tsconfig/recommended": "^1.0.13",
+        "@types/express": "^5.0.6",
+        "@types/node": "^26.6.2",
+        "tsc-watch": "^7.2.1",
+        "typescript": "^7.0.2"
     }
 }
