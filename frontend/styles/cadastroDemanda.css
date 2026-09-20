@@ -155,7 +155,7 @@ body {
 
 .multiple-columns {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
@@ -217,8 +217,6 @@ body {
     background-repeat: no-repeat;
     background-position: right 6px top 50%;
     background-size: 12px auto;
-    padding: 20px;
-    width: 220px;
 }
 
 /* AÇÕES DO FORMULÁRIO (BOTÕES) */
@@ -304,4 +302,13 @@ body {
 .campo-bloqueado:focus {
     border: 1.5px dashed #CBD5E1;
     box-shadow: none;
+}
+
+/* MENSAGENS DE ERRO JS */
+.error-msg {
+    color: var(--input-error); /* Usa o vermelho definido nas suas variáveis */
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 4px;
+    display: none; /* Fica oculto até o JS ativar */
 }
