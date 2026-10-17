@@ -29,6 +29,64 @@ O sistema contempla demandas como **tarefas**, **defeitos ("bugs")** e **melhori
 
 ---
 
+## ⚙️ Instalação e Execução
+
+### Pré-requisitos
+
+Antes de executar o projeto, é necessário ter instalado:
+
+- [Node.js](https://nodejs.org/), preferencialmente uma versão LTS.
+- npm, instalado junto com o Node.js.
+- [Git](https://git-scm.com/).
+
+### 1. Clonar o repositório
+
+Clone o repositório do projeto:
+
+```bash
+git clone https://github.com/GuiZambuzi/PI-II-Time-3.git
+```
+
+Entre na pasta do projeto:
+
+```bash
+cd PI-II-Time-3
+```
+
+### 2. Instalar as dependências
+
+Na pasta raiz do projeto, execute:
+
+```bash
+npm install
+npm install --prefix frontend
+npm install --prefix backend
+```
+
+Esses comandos instalam as dependências necessárias para executar o projeto, incluindo as do frontend e do backend.
+
+### 3. Executar somente o backend para testes
+
+Para iniciar apenas o servidor backend, execute na pasta raiz:
+
+```bash
+npm run dev --prefix backend
+```
+
+### 4. Executar o frontend e o backend
+
+Para iniciar os dois servidores simultaneamente, execute na pasta raiz:
+
+```bash
+npm run dev
+```
+
+Esse comando utiliza o `concurrently` para iniciar o frontend e o backend ao mesmo tempo.
+
+**Observação:** mantenha o terminal aberto enquanto estiver utilizando o sistema. Para encerrar os servidores, pressione `Ctrl + C`.
+
+---
+
 ## 📋 Sistema
 
 O **Sistema de Acompanhamento de Demandas de Desenvolvimento** é inspirado em ferramentas utilizadas por equipes de tecnologia para a organização de demandas relacionadas a um software.
