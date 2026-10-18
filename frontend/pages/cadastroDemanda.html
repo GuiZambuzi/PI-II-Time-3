@@ -1,0 +1,166 @@
+<!-- 
+  Autor: Guilherme Henrique Lopes Zambuzi
+  PI2 - Sistema de Acompanhamento de Demandas
+-->
+
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../styles/global.css" />
+        <link rel="stylesheet" href="../styles/cadastroDemanda.css" />
+
+        <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
+        <title>Cadastro/Edição Demandas | Demandly</title>
+
+        <script src="../scripts/cadastroDemanda.js"></script>
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="dashboard.html">
+                    <img src="../imgs/logos/demandly_logo_white.webp" alt="Demandly Logo" />
+                </a>
+            </div>
+
+            <div class="nav-container">
+                <nav>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="listagemDemanda.html">Listagem de Demandas</a>
+                    <a href="cadastroDemanda.html">Cadastro/Edição de Demanda</a>
+                </nav>
+            </div>
+
+            <div class="perfil-container">
+                <a href="#perfil">
+                    <img
+                        src="https://i.pinimg.com/736x/32/9b/54/329b54d07444f009b0634f438db9a449.jpg"
+                        alt="Foto de Perfil"
+                    />
+                </a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="form-container">
+                <div class="form-header">
+                    <h2 id="titulo-formulario">Cadastrar Nova Demanda</h2>
+                    <p id="subtitulo-formulario">
+                        Preencha os campos abaixo para registrar a demanda no sistema.
+                    </p>
+                </div>
+
+                <form action="#" method="POST" id="demanda-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="titulo">Título da Demanda <span class="required">*</span></label>
+                            <input
+                                type="text"
+                                id="titulo"
+                                name="titulo"
+                                placeholder="Ex: Criação de nova landing page"
+                                required
+                            />
+                            <span class="error-msg" id="erro-titulo"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row multiple-columns">
+                        <!-- 1. Tipo da Demanda -->
+                        <div class="form-group">
+                            <label for="categoria">Tipo da Demanda <span class="required">*</span></label>
+                            <select id="categoria" name="categoria">
+                                <option value="" disabled selected>Selecione um tipo...</option>
+                                <option value="tarefa">Tarefa</option>
+                                <option value="defeito">Defeito</option>
+                                <option value="melhoria">Melhoria</option>
+                                <option value="documentacao">Documentação</option>
+                            </select>
+                            <span class="error-msg" id="erro-categoria"></span>
+                        </div>
+
+                        <!-- 2. Prioridade -->
+                        <div class="form-group">
+                            <label for="prioridade">Prioridade <span class="required">*</span></label>
+                            <select id="prioridade" name="prioridade">
+                                <option value="" disabled selected>Selecione a prioridade...</option>
+                                <option value="critica">Crítica</option>
+                                <option value="alta">Alta</option>
+                                <option value="media">Média</option>
+                                <option value="baixa">Baixa</option>
+                            </select>
+                            <span class="error-msg" id="erro-prioridade"></span>
+                        </div>
+
+                        <!-- 3. Projeto Vinculado -->
+                        <div class="form-group">
+                            <label for="projeto">Projeto Vinculado <span class="required">*</span></label>
+                            <select id="projeto" name="projeto">
+                                <option value="" disabled selected>Selecione um projeto...</option>
+                                <option value="mes-fluxon">MES FluxON</option>
+                                <option value="projeto-b">Projeto Secundário</option>
+                                <option value="manutencao">Manutenção Geral</option>
+                            </select>
+                            <span class="error-msg" id="erro-projeto"></span>
+                        </div>
+
+                        <!-- 4. Responsável -->
+                        <div class="form-group">
+                            <label for="responsavel">Responsável <span class="required">*</span></label>
+                            <select id="responsavel" name="responsavel">
+                                <option value="" disabled selected>Selecione um responsável...</option>
+                                <option value="dev1">Desenvolvedor Front-end</option>
+                                <option value="dev2">Desenvolvedor Back-end</option>
+                                <option value="qa">Analista de Qualidade</option>
+                            </select>
+                            <span class="error-msg" id="erro-responsavel"></span>
+                        </div>
+
+                        <!-- 5. Prazo -->
+                        <div class="form-group">
+                            <label for="prazo">Prazo de Finalização</label>
+                            <input type="date" id="prazo" name="prazo" />
+                            <span class="error-msg" id="erro-prazo"></span>
+                        </div>
+                        
+                        <!-- 6. Status -->
+                        <div class="form-group">
+                            <label for="status">Status <span class="required">*</span></label>
+                            <select id="status" name="status">
+                                <option value="" disabled selected>Selecione o status...</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="em-andamento">Em Andamento</option>
+                                <option value="em-revisao">Em Revisão</option>
+                                <option value="concluida">Concluída</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                            <span class="error-msg" id="erro-status"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="descricao">Descrição Detalhada <span class="required">*</span></label>
+                            <textarea
+                                id="descricao"
+                                name="descricao"
+                                rows="6"
+                                placeholder="Descreva o que precisa ser feito com o máximo de detalhes..."
+                                required
+                            ></textarea>
+                            <span class="error-msg" id="erro-descricao"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit">
+                            Salvar Demanda
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </body>
+</html>
