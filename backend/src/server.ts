@@ -1,6 +1,7 @@
 import express from 'express';
 import demandasRouter from './routes/listagemDemanda';
-import cadastroDemandaRouter from './routes/cadastroDemanda'; // Importando suas rotas
+import cadastroDemandaRouter from './routes/cadastroDemanda';
+import detalhesDemandasRouter from './routes/detalhesDemandas';
 
 const app = express();
 const PORT = 3000;
@@ -22,8 +23,11 @@ app.get('/', (req, res) => {
 // Rota de listagem de demandas
 app.use('/demandas', demandasRouter);
 
+// Rota de detalhes de demandas
+app.use('/demandas', detalhesDemandasRouter);
+
 // Rota de Cadastro de demandas
-app.use('/', cadastroDemandaRouter); 
+app.use('/', cadastroDemandaRouter);
 
 app.listen(PORT, () => {
     console.log(`Servidor BACKEND rodando em http://localhost:${PORT}`);
