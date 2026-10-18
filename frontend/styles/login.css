@@ -164,11 +164,7 @@ h1 {
 
 .form-text {
   font-size: 12px;
-  margin: 10px 0 0 15px;
+  margin: 15px 0 0 15px;
   color: #4A5568;
-}
-
-.container-field:has(input.is-invalid) .form-text {
-  display: none;
 }
 

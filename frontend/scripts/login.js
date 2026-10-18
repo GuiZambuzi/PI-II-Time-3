@@ -1,3 +1,13 @@
+/*
+
+João Victor Grisolia Luis - RA: 26005781
+
+Arquivo: login.js
+Descrição: Este arquivo contém a lógica de validação do formulário de login, 
+incluindo a exibição de mensagens de erro e a alternância da visibilidade da senha.
+
+*/
+
 const formulario = document.querySelector("#formLogin");
 
 const campoEmail = document.querySelector("#email");
