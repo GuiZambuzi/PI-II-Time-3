@@ -1,5 +1,6 @@
 import express from 'express';
 import demandasRouter from './routes/listagemDemanda';
+import usuariosRouter from './routes/usuarios';
 
 const app = express();
 const PORT = 3000;
@@ -20,6 +21,9 @@ app.get('/', (req, res) => {
 
 // Rota de listagem de demandas
 app.use('/demandas', demandasRouter);
+
+// Rota de usuários
+app.use('/usuarios', usuariosRouter);
 
 app.listen(PORT, () => {
     console.log(`Servidor BACKEND rodando em http://localhost:${PORT}`);
