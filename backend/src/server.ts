@@ -1,5 +1,6 @@
 import express from 'express';
 import demandasRouter from './routes/listagemDemanda';
+import usuariosRouter from './routes/usuarios';
 import cadastroDemandaRouter from './routes/cadastroDemanda';
 import detalhesDemandasRouter from './routes/detalhesDemandas';
 import dashboardRouter from './routes/dashboard';
@@ -26,6 +27,9 @@ app.use('/dashboard', dashboardRouter);
 
 // Rota de listagem de demandas
 app.use('/demandas', demandasRouter);
+
+// Rota de usuários
+app.use('/usuarios', usuariosRouter);
 
 // Rota de detalhes de demandas
 app.use('/demandas', detalhesDemandasRouter);
