@@ -1,0 +1,30 @@
+- Valido
+
+{
+  "titulo": "Corrigir bug no menu lateral",
+  "descricao": "O menu lateral está fechando sozinho ao redimensionar a tela.",
+  "tipo": "Defeito",
+  "prioridade": "Alta",
+  "projetoId": 1,
+  "responsavelId": 3,
+  "prazoFinalizacao": "2026-11-10"
+}
+
+- Falta info obrigatoria
+
+{
+  "descricao": "Faltou o título propositalmente.",
+  " tipo": "Tarefa",
+  "prioridade": "Média",
+  "projetoId": 1
+}
+
+- Tipo invalido
+
+{
+  "titulo": "Teste de tipo inválido",
+  "descricao": "Testando se o servidor rejeita tipos errados.",
+  "tipo": "TipoInexistente",
+  "prioridade": "Baixa",
+  "projetoId": 1
+}
