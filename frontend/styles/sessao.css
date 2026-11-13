@@ -1,0 +1,70 @@
+/*
+
+João Victor Grisolia Luis - RA: 26005781
+
+Arquivo: sessao.css
+Descrição: estilo da área do usuário logado no cabeçalho das páginas internas
+(saudação, perfil e botão Sair), preenchida pelo script sessao.js.
+A div .usuario-container ocupa a 3ª coluna do grid do header (global.css),
+no lugar do antigo .perfil-container.
+
+*/
+
+/* agrupa o pessoal ali */
+.usuario-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    z-index: 10;
+}
+
+/* saudação do lado do nome do usuario */
+#saudacaoUsuario {
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* perfil do usuário */
+#perfilUsuario {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* esconde a etiqueta do usuario enquanto o perfil ainda não foi carregado */
+#perfilUsuario:empty {
+    display: none;
+}
+
+#botaoSair {
+    width: auto;
+    padding: 8px 16px;
+    border: 1.5px solid #2563eb;
+    border-radius: 10px;
+    background: transparent;
+    color: #2563eb;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+#botaoSair:hover {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+/* nas telas pequenas: esconde a saudação para não apertar o menu */
+@media (max-width: 900px) {
+    #saudacaoUsuario {
+        display: none;
+    }
+}
