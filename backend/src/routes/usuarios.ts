@@ -17,6 +17,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { usuarios, Usuario, Perfil } from "../data/usuarioDados";
+import { exigirLogin } from "../middleware/exigirLogin";
 
 const router = Router();
 
@@ -40,18 +41,6 @@ declare module "express-session" {
 function semSenha(usuario: Usuario): UsuarioSessao {
   const { senhaHash, ...publico } = usuario;
   return publico;
-}
-
-/**
- * Middleware exigirLogin
- * Sem usuário na sessão -> 401. Com usuário -> libera a próxima função da rota.
- * Pode ser usado pelas outras rotas do sistema para exigir login.
- */
-export function exigirLogin(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.usuario) {
-    return res.status(401).json({ mensagem: "Faça login para continuar." });
-  }
-  return next();
 }
 
 /**
