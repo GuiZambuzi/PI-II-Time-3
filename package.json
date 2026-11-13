@@ -22,7 +22,7 @@
     "homepage": "https://github.com/GuiZambuzi/PI-II-Time-3#readme",
     "devDependencies": {
         "@types/express": "^5.0.6",
-        "@types/node": "^26.6.5",
+        "@types/node": "^26.6.6",
         "concurrently": "^10.0.5",
         "typescript": "^7.0.2"
     }
