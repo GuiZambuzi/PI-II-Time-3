@@ -140,6 +140,11 @@ h1 {
   background: #1D4ED8;
 }
 
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .container-field input.is-invalid {
   border-color: #DC2626;
   background: #FFF7F7;
