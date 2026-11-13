@@ -6,6 +6,7 @@ import usuariosRouter from './routes/usuarios';
 import cadastroDemandaRouter from './routes/cadastroDemanda';
 import detalhesDemandasRouter from './routes/detalhesDemandas';
 import dashboardRouter from './routes/dashboard';
+import { initPool, getConn, closePool } from './database/db';
 
 const app = express();
 const PORT = 3000;
@@ -65,6 +66,36 @@ app.use('/demandas', detalhesDemandasRouter);
 // Rota de Cadastro de demandas
 app.use('/', cadastroDemandaRouter);
 
-app.listen(PORT, () => {
-    console.log(`Servidor BACKEND rodando em http://localhost:${PORT}`);
+/*
+ * Inicialização do banco (Oracle) - João Victor Grisolia Luis
+ * Cria o pool de conexões uma única vez, ao subir o servidor; depois, as rotas
+ * só pegam conexões prontas com getConn() (database/db.ts).
+ * Se a conexão falhar (Oracle desligado ou backend/.env ausente/errado), o erro
+ * aparece no terminal e o servidor sobe mesmo assim, para que as rotas que ainda
+ * usam dados em memória continuem funcionando. Nesse caso, as rotas que usam
+ * getConn() vão falhar até o banco ser configurado e o servidor reiniciado.
+ */
+async function conectarBanco(): Promise<void> {
+    try {
+        await initPool();
+
+        // o oracledb cria o pool sem conectar de imediato, então pegamos uma
+        // conexão de teste para confirmar que o banco realmente responde
+        const conn = await getConn();
+        await conn.close();
+
+        console.log('Conexão com o Oracle estabelecida.');
+    } catch (erro) {
+        console.error('Não foi possível conectar ao Oracle:', erro instanceof Error ? erro.message : erro);
+        console.error('Confira o arquivo backend/.env. O servidor vai subir mesmo assim, sem o banco.');
+
+        // fecha o pool para ele parar de tentar conectar em segundo plano
+        await closePool();
+    }
+}
+
+conectarBanco().finally(() => {
+    app.listen(PORT, () => {
+        console.log(`Servidor BACKEND rodando em http://localhost:${PORT}`);
+    });
 });
