@@ -7,8 +7,9 @@
  * Rotas: POST /login, GET /sessao, POST /logout e GET /usuarios
  *
  * Fluxo da autenticação:
- * 1. POST /login recebe e-mail e senha, verifica a senha com bcrypt.compare
- *    e cria a sessão no servidor (express-session).
+ * 1. POST /login recebe e-mail e senha, busca o usuário na tabela usuarios do
+ *    Oracle (SELECT), verifica a senha com bcrypt.compare e cria a sessão no
+ *    servidor (express-session).
  * 2. A resposta envia o cookie "demandly.sid" (Set-Cookie) com o identificador da sessão.
  * 3. Nas próximas requisições o navegador devolve o cookie e o servidor
  *    encontra o usuário em req.session.usuario.
@@ -18,6 +19,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { usuarios, Usuario, Perfil } from "../data/usuarioDados";
 import { exigirLogin } from "../middleware/exigirLogin";
+import { getConn } from "../database/db";
 
 const router = Router();
 
@@ -49,6 +51,7 @@ function semSenha(usuario: Usuario): UsuarioSessao {
  * 200 -> dados do usuário e perfil (sem senha) + cookie da sessão
  * 400 -> e-mail ou senha ausentes/inválidos
  * 401 -> credenciais inválidas
+ * 500 -> erro ao consultar o banco de dados
  */
 router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
   const { email, senha } = req.body ?? {};
@@ -64,7 +67,30 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
 
   // o e-mail é normalizado; a senha é usada exatamente como foi digitada
   const emailNormalizado = email.trim().toLowerCase();
-  const usuario = usuarios.find((user) => user.email.toLowerCase() === emailNormalizado);
+
+  // busca o usuário pelo e-mail na tabela usuarios do Oracle
+  let conn;
+  let usuario: Usuario | undefined;
+  try {
+    conn = await getConn();
+    const resultado = await conn.execute<Usuario>(
+      // os apelidos entre aspas fazem o Oracle devolver as colunas com estes
+      // nomes (em vez de MAIÚSCULAS), no mesmo formato do tipo Usuario
+      `SELECT id AS "id", nome AS "nome", email AS "email",
+              senha_hash AS "senhaHash", perfil AS "perfil"
+         FROM usuarios
+        WHERE LOWER(email) = :email`,
+      { email: emailNormalizado } // bind: o valor nunca é concatenado no SQL (evita SQL injection)
+    );
+    usuario = resultado.rows?.[0];
+  } catch (erro) {
+    // banco fora do ar, tabela inexistente, .env errado etc.
+    console.error("Erro ao consultar o usuário no Oracle:", erro instanceof Error ? erro.message : erro);
+    return res.status(500).json({ mensagem: "Não foi possível acessar o banco de dados. Tente novamente." });
+  } finally {
+    // devolve a conexão ao pool, mesmo se der erro
+    if (conn) await conn.close();
+  }
 
   // compara a senha digitada com o hash guardado (o salt já está dentro do hash)
   const senhaCorreta = usuario ? await bcrypt.compare(senha, usuario.senhaHash) : false;
