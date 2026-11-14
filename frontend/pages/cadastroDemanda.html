@@ -14,7 +14,7 @@
         <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
         <title>Cadastro/Edição Demandas | Demandly</title>
 
-        <script src="../scripts/cadastroDemanda.js"></script>
+        <script src="../scripts/cadastroDemanda.js" defer></script>
     </head>
     <body>
         <header class="header">
@@ -51,7 +51,7 @@
                     </p>
                 </div>
 
-                <form action="#" method="POST" id="demanda-form">
+                <form id="demanda-form">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="titulo">Título da Demanda <span class="required">*</span></label>
@@ -67,74 +67,62 @@
                     </div>
 
                     <div class="form-row multiple-columns">
-                        <!-- 1. Tipo da Demanda -->
+                        <!-- 1. Tipo da Demanda (Coerente com o CHECK do Oracle) -->
                         <div class="form-group">
-                            <label for="categoria">Tipo da Demanda <span class="required">*</span></label>
-                            <select id="categoria" name="categoria">
+                            <label for="tipo">Tipo da Demanda <span class="required">*</span></label>
+                            <select id="tipo" name="tipo" required>
                                 <option value="" disabled selected>Selecione um tipo...</option>
-                                <option value="tarefa">Tarefa</option>
-                                <option value="defeito">Defeito</option>
-                                <option value="melhoria">Melhoria</option>
-                                <option value="documentacao">Documentação</option>
+                                <option value="Tarefa">Tarefa</option>
+                                <option value="Defeito">Defeito</option>
+                                <option value="Melhoria">Melhoria</option>
+                                <option value="Documentação">Documentação</option>
                             </select>
-                            <span class="error-msg" id="erro-categoria"></span>
+                            <span class="error-msg" id="erro-tipo"></span>
                         </div>
 
-                        <!-- 2. Prioridade -->
+                        <!-- 2. Prioridade (Coerente com o CHECK do Oracle) -->
                         <div class="form-group">
                             <label for="prioridade">Prioridade <span class="required">*</span></label>
-                            <select id="prioridade" name="prioridade">
+                            <select id="prioridade" name="prioridade" required>
                                 <option value="" disabled selected>Selecione a prioridade...</option>
-                                <option value="critica">Crítica</option>
-                                <option value="alta">Alta</option>
-                                <option value="media">Média</option>
-                                <option value="baixa">Baixa</option>
+                                <option value="Crítica">Crítica</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Média">Média</option>
+                                <option value="Baixa">Baixa</option>
                             </select>
                             <span class="error-msg" id="erro-prioridade"></span>
                         </div>
 
-                        <!-- 3. Projeto Vinculado -->
+                        <!-- 3. Projeto Vinculado (Preenchido dinamicamente via GET /projetos) -->
                         <div class="form-group">
-                            <label for="projeto">Projeto Vinculado <span class="required">*</span></label>
-                            <select id="projeto" name="projeto">
-                                <option value="" disabled selected>Selecione um projeto...</option>
-                                <option value="mes-fluxon">MES FluxON</option>
-                                <option value="projeto-b">Projeto Secundário</option>
-                                <option value="manutencao">Manutenção Geral</option>
+                            <label for="id_projeto">Projeto Vinculado <span class="required">*</span></label>
+                            <select id="id_projeto" name="id_projeto" required>
+                                <option value="" disabled selected>Carregando projetos...</option>
                             </select>
                             <span class="error-msg" id="erro-projeto"></span>
                         </div>
 
-                        <!-- 4. Responsável -->
+                        <!-- 4. Responsável (Opcional ou preenchido dinamicamente) -->
                         <div class="form-group">
-                            <label for="responsavel">Responsável <span class="required">*</span></label>
-                            <select id="responsavel" name="responsavel">
-                                <option value="" disabled selected>Selecione um responsável...</option>
-                                <option value="dev1">Desenvolvedor Front-end</option>
-                                <option value="dev2">Desenvolvedor Back-end</option>
-                                <option value="qa">Analista de Qualidade</option>
+                            <label for="id_responsavel">Responsável</label>
+                            <select id="id_responsavel" name="id_responsavel">
+                                <option value="" selected>Sem responsável (Opcional)</option>
+                                <!-- Se preferir carregar da API de usuários, o JS pode injetar aqui -->
                             </select>
                             <span class="error-msg" id="erro-responsavel"></span>
                         </div>
 
-                        <!-- 5. Prazo -->
+                        <!-- 5. Prazo de Finalização -->
                         <div class="form-group">
-                            <label for="prazo">Prazo de Finalização</label>
-                            <input type="date" id="prazo" name="prazo" />
+                            <label for="prazo_finalizacao">Prazo de Finalização <span class="required">*</span></label>
+                            <input type="date" id="prazo_finalizacao" name="prazo_finalizacao" required />
                             <span class="error-msg" id="erro-prazo"></span>
                         </div>
                         
-                        <!-- 6. Status -->
+                        <!-- 6. Status Inicial (Definido automaticamente como Aberta) -->
                         <div class="form-group">
-                            <label for="status">Status <span class="required">*</span></label>
-                            <select id="status" name="status">
-                                <option value="" disabled selected>Selecione o status...</option>
-                                <option value="pendente">Pendente</option>
-                                <option value="em-andamento">Em Andamento</option>
-                                <option value="em-revisao">Em Revisão</option>
-                                <option value="concluida">Concluída</option>
-                                <option value="cancelada">Cancelada</option>
-                            </select>
+                            <label for="status">Status Inicial</label>
+                            <input type="text" id="status" name="status" value="Aberta" disabled style="background-color: #f1f1f1; cursor: not-allowed;" />
                             <span class="error-msg" id="erro-status"></span>
                         </div>
                     </div>
