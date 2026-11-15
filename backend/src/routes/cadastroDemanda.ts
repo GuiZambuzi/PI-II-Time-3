@@ -8,6 +8,7 @@
 
 import { Router, Request, Response } from "express";
 import { getConn } from "../database/db";
+import { exigirLogin } from "../middleware/exigirLogin";
 
 const router = Router();
 
@@ -15,17 +16,45 @@ const router = Router();
 const normalizar = (valor: unknown): string =>
     String(valor ?? "").trim().toLocaleLowerCase("pt-BR");
 
-// 1. ROTA GET /projetos: Lista os projetos disponíveis diretamente do Oracle
-router.get("/projetos", async (req: Request, res: Response) => {
+// Valores canônicos aceitos pelas CHECK da tabela demandas (com acento e maiúscula).
+// A chave é o valor normalizado (minúsculo), o valor é o que vai para o banco.
+const TIPOS: Record<string, string> = {
+    "tarefa": "Tarefa",
+    "defeito": "Defeito",
+    "melhoria": "Melhoria",
+    "documentação": "Documentação",
+    "documentacao": "Documentação"
+};
+
+const PRIORIDADES: Record<string, string> = {
+    "crítica": "Crítica",
+    "critica": "Crítica",
+    "alta": "Alta",
+    "média": "Média",
+    "media": "Média",
+    "baixa": "Baixa"
+};
+
+// 1. ROTA GET /projetos: Lista apenas os projetos vinculados ao usuário logado
+router.get("/projetos", exigirLogin, async (req: Request, res: Response) => {
+    // O id vem da sessão (cookie), nunca do corpo ou da URL
+    const idUsuario = req.session.usuario!.id;
+
     let conn;
     try {
         conn = await getConn();
         const resultado: any = await conn.execute(
-            "SELECT id, nome, descricao FROM projetos ORDER BY id"
+            `SELECT p.id AS "id", p.nome AS "nome", p.descricao AS "descricao"
+               FROM projetos p
+               JOIN usuario_projetos up ON up.id_projeto = p.id
+              WHERE up.id_usuario = :idUsuario
+              ORDER BY p.id`,
+            { idUsuario }
         );
-        return res.status(200).json(resultado.rows);
+
+        return res.status(200).json(resultado.rows || []);
     } catch (error) {
-        console.error("Erro ao buscar projetos no Oracle:", error);
+        console.error("Erro detalhado ao buscar projetos no Oracle:", error);
         return res.status(500).json({
             mensagem: "Erro interno no servidor ao buscar projetos."
         });
@@ -41,7 +70,7 @@ router.get("/projetos", async (req: Request, res: Response) => {
 });
 
 // 2. ROTA POST /demandas: Cadastra uma nova demanda com validações e persistência no Oracle
-router.post("/demandas", async (req: Request, res: Response) => {
+router.post("/demandas", exigirLogin, async (req: Request, res: Response) => {
     const { titulo, descricao, tipo, prioridade, id_projeto, id_responsavel, prazo_finalizacao } = req.body;
 
     // Validação de campos obrigatórios exigidos pelo Requisito
@@ -51,38 +80,46 @@ router.post("/demandas", async (req: Request, res: Response) => {
         });
     }
 
-    const tipoNorm = normalizar(tipo);
-    const prioridadeNorm = normalizar(prioridade);
-
-    const tiposPermitidos = ["tarefa", "defeito", "melhoria", "documentação", "documentacao"];
-    const prioridadesPermitidas = ["crítica", "critica", "alta", "média", "media", "baixa"];
+    // Converte para o valor exato que o banco aceita (undefined se for inválido)
+    const tipoCanonico = TIPOS[normalizar(tipo)];
+    const prioridadeCanonica = PRIORIDADES[normalizar(prioridade)];
 
     // Validação de tipo permitido
-    if (!tiposPermitidos.includes(tipoNorm)) {
+    if (!tipoCanonico) {
         return res.status(400).json({
             mensagem: "Tipo de demanda inválido. Permitidos: Tarefa, Defeito, Melhoria ou Documentação."
         });
     }
 
     // Validação de prioridade permitida
-    if (!prioridadesPermitidas.includes(prioridadeNorm)) {
+    if (!prioridadeCanonica) {
         return res.status(400).json({
             mensagem: "Prioridade inválida. Permitidas: Crítica, Alta, Média ou Baixa."
         });
     }
 
+    // Validação do formato da data (evita ORA-01861 no TO_DATE)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(prazo_finalizacao))) {
+        return res.status(400).json({
+            mensagem: "Prazo inválido. Use o formato AAAA-MM-DD."
+        });
+    }
+
+    const idUsuario = req.session.usuario!.id;
+
     let conn;
     try {
         conn = await getConn();
 
-        // Verificar se o projeto informado realmente existe no banco Oracle
-        const projetoExiste: any = await conn.execute(
-            "SELECT id FROM projetos WHERE id = :id",
-            { id: id_projeto }
+        // Verificar se o usuário logado está vinculado ao projeto informado
+        const vinculo: any = await conn.execute(
+            `SELECT 1 FROM usuario_projetos
+              WHERE id_usuario = :idUsuario AND id_projeto = :idProjeto`,
+            { idUsuario, idProjeto: Number(id_projeto) }
         );
-        if (projetoExiste.rows.length === 0) {
-            return res.status(400).json({
-                mensagem: "O projeto informado não existe no banco de dados."
+        if (vinculo.rows.length === 0) {
+            return res.status(403).json({
+                mensagem: "Você não tem acesso a este projeto."
             });
         }
 
@@ -90,7 +127,7 @@ router.post("/demandas", async (req: Request, res: Response) => {
         if (id_responsavel !== undefined && id_responsavel !== null && id_responsavel !== "") {
             const usuarioExiste: any = await conn.execute(
                 "SELECT id FROM usuarios WHERE id = :id",
-                { id: id_responsavel }
+                { id: Number(id_responsavel) }
             );
             if (usuarioExiste.rows.length === 0) {
                 return res.status(400).json({
@@ -110,8 +147,8 @@ router.post("/demandas", async (req: Request, res: Response) => {
             {
                 titulo: String(titulo).trim(),
                 descricao: String(descricao).trim(),
-                tipo: String(tipo),
-                prioridade: String(prioridade),
+                tipo: tipoCanonico,
+                prioridade: prioridadeCanonica,
                 id_projeto: Number(id_projeto),
                 id_responsavel: id_responsavel ? Number(id_responsavel) : null,
                 prazo: String(prazo_finalizacao)

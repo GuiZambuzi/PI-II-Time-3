@@ -47,7 +47,7 @@ const connectString = `${ORACLE_HOST}:${ORACLE_PORT}/${ORACLE_SERVICE}`;
  * Isso facilita o uso e integração com APIs e front-ends (JSON direto).
  */
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-
+oracledb.fetchAsString = [oracledb.CLOB];
 /**
  * FUNÇÃO initPool()
  * --------------------
