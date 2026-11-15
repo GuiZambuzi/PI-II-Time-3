@@ -89,7 +89,13 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
     return res.status(500).json({ mensagem: "Não foi possível acessar o banco de dados. Tente novamente." });
   } finally {
     // devolve a conexão ao pool, mesmo se der erro
-    if (conn) await conn.close();
+    if (conn) {
+      try {
+        await conn.close();
+      } catch (e) {
+        console.error("Erro ao fechar conexão:", e);
+      }
+    }
   }
 
   // compara a senha digitada com o hash guardado (o salt já está dentro do hash)
@@ -144,7 +150,7 @@ router.post("/logout", exigirLogin, (req: Request, res: Response, next: NextFunc
  * GET /usuarios
  * status 200 -> lista de usuários pré-cadastrados, sem a senha.
  */
-router.get("/usuarios", (req: Request, res: Response) => {
+router.get("/usuarios", exigirLogin, (req: Request, res: Response) => {
   return res.status(200).json(usuarios.map(semSenha));
 });
 
