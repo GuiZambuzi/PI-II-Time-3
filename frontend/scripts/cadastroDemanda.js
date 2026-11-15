@@ -1,22 +1,57 @@
 /* 
  * Autor: Guilherme Henrique Lopes Zambuzi
- * Arquivo: cadastroDemanda.js
- * Descrição: Validações de frontend para a tela de Cadastro/Edição de Demandas - PI2.
+ * Descrição: Validações de frontend e integração com a API Oracle para a tela de Cadastro/Edição de Demandas - PI2.
  */
 
-document.addEventListener("DOMContentLoaded", function() {
+const API_URL = "http://localhost:3000";
+
+document.addEventListener("DOMContentLoaded", async function() {
     const form = document.getElementById("demanda-form");
+    const selectProjeto = document.getElementById("id_projeto");
 
-    form.addEventListener("submit", function(event) {
-        // Impede o envio do formulário antes das validações
+    // 1. CARREGAR OS PROJETOS DO USUÁRIO LOGADO AO ABRIR A PÁGINA
+    try {
+        // credentials: "include" faz o navegador enviar o cookie da sessão (demandly.sid)
+        const resposta = await fetch(`${API_URL}/projetos`, {
+            credentials: "include"
+        });
+
+        if (resposta.status === 401) {
+            selectProjeto.innerHTML = '<option value="" disabled selected>Faça login para ver seus projetos</option>';
+            return;
+        }
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao carregar projetos do servidor.");
+        }
+        const projetos = await resposta.json();
+
+        selectProjeto.innerHTML = '<option value="" disabled selected>Selecione um projeto...</option>';
+
+        if (projetos.length === 0) {
+            selectProjeto.innerHTML = '<option value="" disabled selected>Você não possui projetos vinculados</option>';
+        }
+        
+        projetos.forEach(projeto => {
+            const option = document.createElement("option");
+            // Compatível com chaves maiúsculas ou minúsculas do Oracle
+            option.value = projeto.ID || projeto.id;
+            option.textContent = projeto.NOME || projeto.nome;
+            selectProjeto.appendChild(option);
+        });
+    } catch (erro) {
+        console.error("Erro ao buscar projetos:", erro);
+        selectProjeto.innerHTML = '<option value="" disabled selected>Erro ao carregar projetos</option>';
+    }
+
+    // 2. VALIDAÇÃO E ENVIO DO FORMULÁRIO
+    form.addEventListener("submit", async function(event) {
         event.preventDefault();
-
-        // Limpa todas as mensagens de erro antes de validar novamente
         limparErros();
 
         let formularioValido = true;
 
-        // Validação do Título (Obrigatório e mínimo de 5 caracteres)
+        // Validação do Título
         const titulo = document.getElementById("titulo").value.trim();
         if (titulo === "") {
             mostrarErro("erro-titulo", "O título da demanda é obrigatório.");
@@ -26,50 +61,41 @@ document.addEventListener("DOMContentLoaded", function() {
             formularioValido = false;
         }
 
-        // Validação da Categoria / Tipo (Obrigatório e escopo)
-        const categoria = document.getElementById("categoria").value;
-        const categoriasPermitidas = ["tarefa", "defeito", "melhoria", "documentacao"];
-        if (categoria === "") {
-            mostrarErro("erro-categoria", "Selecione o tipo da demanda.");
-            formularioValido = false;
-        } else if (!categoriasPermitidas.includes(categoria)) {
-            mostrarErro("erro-categoria", "Tipo de demanda inválido.");
+        // Validação do Tipo da Demanda
+        const tipo = document.getElementById("tipo").value;
+        if (tipo === "") {
+            mostrarErro("erro-tipo", "Selecione o tipo da demanda.");
             formularioValido = false;
         }
 
-        // Validação da Prioridade (Obrigatório e escopo)
+        // Validação da Prioridade
         const prioridade = document.getElementById("prioridade").value;
-        const prioridadesPermitidas = ["critica", "alta", "media", "baixa"];
         if (prioridade === "") {
             mostrarErro("erro-prioridade", "Selecione a prioridade.");
             formularioValido = false;
-        } else if (!prioridadesPermitidas.includes(prioridade)) {
-            mostrarErro("erro-prioridade", "Prioridade inválida.");
-            formularioValido = false;
         }
 
-        // Validação do Projeto Vinculado (Obrigatório)
-        const projeto = document.getElementById("projeto").value;
-        if (projeto === "") {
+        // Validação do Projeto Vinculado
+        const id_projeto = selectProjeto.value;
+        if (id_projeto === "") {
             mostrarErro("erro-projeto", "Selecione o projeto vinculado.");
             formularioValido = false;
         }
 
-        // Validação do Responsável (Obrigatório)
-        const responsavel = document.getElementById("responsavel").value;
-        if (responsavel === "") {
-            mostrarErro("erro-responsavel", "Selecione o responsável pela demanda.");
-            formularioValido = false;
-        }
+        // Validação do Responsável (Opcional, mas se selecionado precisa existir)
+        const id_responsavel = document.getElementById("id_responsavel").value;
 
-        // Validação do Prazo (Não pode ser data no passado)
-        const prazoStr = document.getElementById("prazo").value;
-        if (prazoStr !== "") {
-            const dataPrazo = new Date(prazoStr);
-            dataPrazo.setUTCHours(23, 59, 59, 999); 
+        // Validação do Prazo de Finalização
+        const prazo_finalizacao = document.getElementById("prazo_finalizacao").value;
+        if (prazo_finalizacao === "") {
+            mostrarErro("erro-prazo", "O prazo de finalização é obrigatório.");
+            formularioValido = false;
+        } else {
+            const dataPrazo = new Date(prazo_finalizacao);
+            dataPrazo.setUTCHours(23, 59, 59, 999);
             
             const dataAtual = new Date();
-            dataAtual.setHours(0, 0, 0, 0); 
+            dataAtual.setHours(0, 0, 0, 0);
 
             if (dataPrazo < dataAtual) {
                 mostrarErro("erro-prazo", "O prazo não pode ser uma data no passado.");
@@ -77,31 +103,53 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
-        // Validação do Status
-        const status = document.getElementById("status").value;
-        const statusPermitidos = ["pendente", "em-andamento", "em-revisao", "concluida", "cancelada"];
-        if (status === "") {
-            mostrarErro("erro-status", "O status é obrigatório.");
-            formularioValido = false;
-        } else if (!statusPermitidos.includes(status)) {
-            mostrarErro("erro-status", "Status inválido selecionado.");
-            formularioValido = false;
-        }
-
-        // Validação da Descrição (Obrigatório e mínimo de 20 caracteres)
+        // Validação da Descrição
         const descricao = document.getElementById("descricao").value.trim();
         if (descricao === "") {
             mostrarErro("erro-descricao", "A descrição é obrigatória.");
             formularioValido = false;
         } else if (descricao.length < 20) {
-            mostrarErro("erro-descricao", "A descrição deve ter pelo menos 20 caracteres para ficar clara.");
+            mostrarErro("erro-descricao", "A descrição deve ter pelo menos 20 caracteres.");
             formularioValido = false;
         }
 
-        // Conclusão da Validação
+        // Se o formulário estiver válido, envia via FETCH para a API
         if (formularioValido) {
-            alert("Demanda salva com sucesso!");
-            // form.submit(); // Descomentar quando integrar com o backend em Node.js
+            const dadosDemanda = {
+                titulo,
+                tipo,
+                prioridade,
+                id_projeto,
+                id_responsavel: id_responsavel || null,
+                prazo_finalizacao,
+                descricao
+            };
+
+            try {
+                const respostaApi = await fetch(`${API_URL}/demandas`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include", // envia o cookie da sessão
+                    body: JSON.stringify(dadosDemanda)
+                });
+
+                const resultado = await respostaApi.json();
+
+                if (!respostaApi.ok) {
+                    // Exibe o erro retornado pela API na tela, conforme exigido na Reunião 5
+                    alert("Erro " + respostaApi.status + ": " + (resultado.mensagem || "Erro ao cadastrar."));
+                    return;
+                }
+
+                alert(resultado.mensagem || "Demanda cadastrada com sucesso!");
+                form.reset();
+                
+            } catch (erro) {
+                console.error("Erro de conexão:", erro);
+                alert("Não foi possível conectar ao servidor backend.");
+            }
         }
     });
 });
