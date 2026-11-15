@@ -1,20 +1,31 @@
+<!--
+    Diego Prandi Silva - RA: 25002584
+
+    Arquivo: detalhesDemanda.html
+    Descrição: Página responsável por exibir os detalhes de uma demanda,
+    suas informações, comentários e histórico de alterações.
+-->
+
 <!doctype html>
-<html lang="en">
+<html lang="pt-br">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
         <link rel="stylesheet" href="../styles/global.css" />
         <link rel="stylesheet" href="../styles/detalhesDemanda.css" />
-
         <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
-        <title>Detalhes das demandas | Demandly</title>
+
+        <title>Detalhes da demanda | Demandly</title>
+        <script src="../scripts/detalhesDemanda.js" defer></script>
     </head>
+
     <body>
         <header class="header">
             <div class="logo">
-                <a href="dashboard.html"
-                    ><img src="../imgs/logos/demandly_logo_white.webp" alt=""
-                /></a>
+                <a href="dashboard.html">
+                    <img src="../imgs/logos/demandly_logo_white.webp" alt="Demandly" />
+                </a>
             </div>
 
             <div class="nav-container">
@@ -27,11 +38,12 @@
             </div>
 
             <div class="perfil-container">
-                <a href="#perfil"
-                    ><img
+                <a href="#perfil">
+                    <img
                         src="https://i.pinimg.com/736x/32/9b/54/329b54d07444f009b0634f438db9a449.jpg"
-                        alt=""
-                /></a>
+                        alt="Perfil"
+                    />
+                </a>
             </div>
         </header>
 
@@ -39,106 +51,99 @@
             <div class="topoPagina">
                 <div>
                     <a href="listagemDemanda.html" class="voltar">← Voltar</a>
-                    <h1>Implementar sistema de notificações</h1>
+                    <h1 id="tituloDemanda">Carregando demanda...</h1>
                 </div>
 
-                <a href="cadastroDemanda.html" class="btnEditar">Editar</a>
+                <a href="#" class="btnEditar" id="btnEditar">Editar</a>
             </div>
+
+            <p id="mensagemErro" role="alert"></p>
 
             <div class="card">
                 <h2>Descrição</h2>
 
-                <p class="descricao">
-                    Implementar um sistema de notificações para informar os usuários sobre
-                    atualizações e alterações importantes relacionadas às suas demandas.
-                </p>
+                <p class="descricao" id="descricaoDemanda">Carregando descrição...</p>
 
                 <div class="informacoes">
                     <div>
                         <span>Tipo</span>
-                        <strong>Melhoria</strong>
+                        <strong id="tipoDemanda">-</strong>
                     </div>
 
                     <div>
                         <span>Prioridade</span>
-                        <strong class="prioridade alta">Alta</strong>
+                        <strong class="prioridade" id="prioridadeDemanda">-</strong>
                     </div>
 
                     <div>
                         <span>Status</span>
-                        <strong class="prioridade andamento">Em andamento</strong>
+                        <strong class="prioridade" id="statusDemanda">-</strong>
                     </div>
 
                     <div>
                         <span>Projeto</span>
-                        <strong>Portal do Cliente</strong>
+                        <strong id="projetoDemanda">-</strong>
                     </div>
 
                     <div>
                         <span>Responsável</span>
-                        <strong>Felipe Almeida</strong>
+                        <strong id="responsavelDemanda">-</strong>
                     </div>
 
                     <div>
                         <span>Data de criação</span>
-                        <strong>22/08/2026</strong>
+                        <strong id="dataCriacao">-</strong>
                     </div>
 
                     <div>
                         <span>Última atualização</span>
-                        <strong>28/08/2026</strong>
+                        <strong id="ultimaAtualizacao">-</strong>
                     </div>
 
                     <div>
                         <span>Prazo de finalização</span>
-                        <strong>03/09/2026</strong>
+                        <strong id="prazoFinalizacao">-</strong>
                     </div>
                 </div>
 
                 <div class="acoes">
-                    <a href="./cadastroDemanda.html"
-                        ><button class="btnStatus">Alterar Status</button></a
-                    >
-                    <a href="./cadastroDemanda.html"
-                        ><button class="btnCancelar">Cancelar Demanda</button></a
-                    >
+                    <a href="#" id="btnAlterarStatus">
+                        <button class="btnStatus" type="button">Alterar Status</button>
+                    </a>
+
+                    <a href="#" id="btnCancelar">
+                        <button class="btnCancelar" type="button">Cancelar Demanda</button>
+                    </a>
                 </div>
             </div>
 
             <div class="card">
                 <h2>Comentários</h2>
 
-                <div class="comentario">
-                    <strong>Felipe Almeida</strong>
-                    <p>A implementação das notificações está em andamento.</p>
+                <div id="listaComentarios">
+                    <p>Carregando comentários...</p>
                 </div>
 
                 <div class="novoComentario">
-                    <textarea placeholder="Escreva um comentário..."></textarea>
-                    <button class="btnComentario">Adicionar Comentário</button>
+                    <textarea
+                        id="textoComentario"
+                        placeholder="Escreva um comentário..."
+                    ></textarea>
+
+                    <button class="btnComentario" id="btnAdicionarComentario" type="button">
+                        Adicionar Comentário
+                    </button>
+
+                    <p id="mensagemComentario" role="alert"></p>
                 </div>
             </div>
 
             <div class="card">
                 <h2>Histórico de Alterações</h2>
 
-                <div class="historico">
-                    <p>
-                        <strong>25/08/2026</strong> - Rafael França alterou o status de Aberta para
-                        Em andamento.
-                    </p>
-
-                    <p>
-                        <strong>24/08/2026</strong> - Everzon Zoio atribuiu a demanda para Felipe
-                        Almeida.
-                    </p>
-
-                    <p>
-                        <strong>23/08/2026</strong> - Cleiton Rasta alterou a prioridade de media
-                        para Alta.
-                    </p>
-
-                    <p><strong>22/08/2026</strong> - Diego Prandi criou a demanda.</p>
+                <div class="historico" id="listaHistorico">
+                    <p>Calma. Tamo no processo de desenvolvimento jaja ta tudo certinho</p>
+                    <p>Ainda nao fiz kk</p>
                 </div>
             </div>
         </main>
