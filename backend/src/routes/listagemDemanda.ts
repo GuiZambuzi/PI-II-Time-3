@@ -1,183 +1,149 @@
-
 /*
  * Feito por Rafael França Cardoso
  *
- * Rota responsável pela listagem de demandas.
- *
- * Permite buscar, filtrar e ordenar demandas utilizando
- * os dados compartilhados do sistema.
- *
- * Retorna erro 400 quando os parâmetros dos filtros
- * ou da ordenação são inválidos.
+ * Rota responsável por listar as demandas cadastradas.
  */
 
 import { Router, Request, Response } from "express";
-import { demandas, projetos, usuarios } from "../data/dados";
+import { getConn } from "../database/db";
 
 const router = Router();
 
-const normalizar = (valor: unknown): string =>
-    String(valor ?? "").trim().toLocaleLowerCase("pt-BR");
+router.get("/", async (req: Request, res: Response) => {
+    let conn;
 
-router.get("/", (req: Request, res: Response) => {
-    const busca = normalizar(req.query.busca);
-    const status = normalizar(req.query.status);
-    const prioridade = normalizar(req.query.prioridade);
-    const tipo = normalizar(req.query.tipo);
-    const ordenacao = normalizar(req.query.ordenacao);
+    try {
+        conn = await getConn();
 
-    const statusPermitidos = [
-        "aberta",
-        "em andamento",
-        "em revisão",
-        "concluída",
-        "cancelada"
-    ];
+        const busca = String(req.query.busca || "").trim();
+        const status = String(req.query.status || "").trim();
+        const prioridade = String(req.query.prioridade || "").trim();
+        const tipo = String(req.query.tipo || "").trim();
+        const ordenacao = String(req.query.ordenacao || "").trim();
+        const pagina = Math.max(1, Number(req.query.pagina) || 1);
+        const limite = 10;
+        const deslocamento = (pagina - 1) * limite;
 
-    const prioridadesPermitidas = [
-        "crítica",
-        "critica",
-        "alta",
-        "média",
-        "media",
-        "baixa"
-    ];
+        let sql = `
+            SELECT
+                d.id AS "id",
+                d.titulo AS "titulo",
+                DBMS_LOB.SUBSTR(d.descricao, 4000, 1) AS "descricao",
+                d.tipo AS "tipo",
+                d.prioridade AS "prioridade",
+                d.status AS "status",
+                p.nome AS "projeto",
+                NVL(u.nome, 'Não atribuído') AS "responsavel",
+                TO_CHAR(d.data_criacao, 'YYYY-MM-DD') AS "dataCriacao",
+                TO_CHAR(d.prazo_finalizacao, 'YYYY-MM-DD') AS "prazoFinalizacao"
+            FROM demandas d
+            INNER JOIN projetos p ON d.id_projeto = p.id
+            LEFT JOIN usuarios u ON d.id_responsavel = u.id
+            WHERE 1 = 1
+        `;
 
-    const tiposPermitidos = [
-        "tarefa",
-        "defeito",
-        "melhoria",
-        "documentação"
-    ];
+        let countSql = `
+            SELECT COUNT(*) AS "total"
+            FROM demandas d
+            INNER JOIN projetos p ON d.id_projeto = p.id
+            LEFT JOIN usuarios u ON d.id_responsavel = u.id
+            WHERE 1 = 1
+        `;
 
-    const ordenacoesPermitidas = [
-        "prioridade",
-        "criacao",
-        "prazo",
-        "status"
-    ];
+        let filtros = "";
+        const binds: any = {};
 
-    // Validação dos parâmetros recebidos
-    if (
-        status &&
-        status !== "todos" &&
-        !statusPermitidos.includes(status)
-    ) {
-        return res.status(400).json({
-            mensagem: "Status inválido."
+        // Busca por título, projeto ou responsável.
+        if (busca) {
+            filtros += `
+                AND (
+                    LOWER(d.titulo) LIKE LOWER(:busca)
+                    OR LOWER(p.nome) LIKE LOWER(:busca)
+                    OR LOWER(u.nome) LIKE LOWER(:busca)
+                    OR TO_CHAR(d.data_criacao, 'DD/MM/YYYY') LIKE :busca
+                    OR TO_CHAR(d.prazo_finalizacao, 'DD/MM/YYYY') LIKE :busca
+                )
+            `;
+
+            binds.busca = `%${busca}%`;
+        }
+
+        // Filtros.
+        if (status && status.toLowerCase() !== "todos") {
+            filtros += " AND LOWER(d.status) = LOWER(:status)";
+            binds.status = status;
+        }
+
+        if (prioridade && prioridade.toLowerCase() !== "todas") {
+            filtros += " AND LOWER(d.prioridade) = LOWER(:prioridade)";
+            binds.prioridade = prioridade;
+        }
+
+        if (tipo && tipo.toLowerCase() !== "todos") {
+            filtros += " AND LOWER(d.tipo) = LOWER(:tipo)";
+            binds.tipo = tipo;
+        }
+
+        // Aplica os mesmos filtros nas duas consultas
+        sql += filtros;
+        countSql += filtros;
+
+        // Ordenação (com critério de desempate d.id DESC).
+        if (ordenacao === "prioridade") {
+            sql += `
+                ORDER BY CASE LOWER(d.prioridade)
+                    WHEN 'crítica' THEN 1
+                    WHEN 'alta' THEN 2
+                    WHEN 'média' THEN 3
+                    WHEN 'baixa' THEN 4
+                END, d.id DESC
+            `;
+        } else if (ordenacao === "criacao") {
+            sql += " ORDER BY d.data_criacao ASC, d.id DESC";
+        } else if (ordenacao === "prazo") {
+            sql += " ORDER BY d.prazo_finalizacao ASC, d.id DESC";
+        } else if (ordenacao === "status") {
+            sql += " ORDER BY d.status ASC, d.id DESC";
+        } else {
+            sql += " ORDER BY d.data_criacao DESC, d.id DESC";
+        }
+
+        // Paginação no final da consulta principal.
+        sql += `
+            OFFSET :deslocamento ROWS
+            FETCH NEXT :limite ROWS ONLY
+        `;
+
+        // Executa a contagem total (apenas com os binds de filtro)
+        const totalResult = await conn.execute(countSql, binds);
+        const total = totalResult.rows && totalResult.rows.length > 0 ? (totalResult.rows[0] as any).total : 0;
+
+        // Executa a consulta principal passando os filtros + deslocamento e limite
+        const resultado = await conn.execute(sql, {
+            ...binds,
+            deslocamento,
+            limite
         });
-    }
 
-    if (
-        prioridade &&
-        prioridade !== "todas" &&
-        !prioridadesPermitidas.includes(prioridade)
-    ) {
-        return res.status(400).json({
-            mensagem: "Prioridade inválida."
+        return res.status(200).json({
+            demandas: resultado.rows || [],
+            total,
+            pagina,
+            limite
         });
-    }
 
-    if (
-        tipo &&
-        tipo !== "todos" &&
-        !tiposPermitidos.includes(tipo)
-    ) {
-        return res.status(400).json({
-            mensagem: "Tipo inválido."
+    } catch (erro) {
+        console.error("Erro ao listar demandas:", erro);
+
+        return res.status(500).json({
+            mensagem: "Não foi possível carregar as demandas."
         });
+
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
     }
-
-    if (
-        ordenacao &&
-        ordenacao !== "nenhuma" &&
-        !ordenacoesPermitidas.includes(ordenacao)
-    ) {
-        return res.status(400).json({
-            mensagem: "Ordenação inválida."
-        });
-    }
-
-    // Relaciona cada demanda ao projeto e ao responsável
-    let resultado = demandas.map((demanda) => {
-        const projeto = projetos.find(
-            (item) => item.id === demanda.projetoId
-        );
-
-        const usuario = usuarios.find(
-            (item) => item.id === demanda.responsavelId
-        );
-
-        return {
-            ...demanda,
-            projeto: projeto?.nome ?? "Sem projeto",
-            responsavel: usuario?.nome ?? "Não atribuído"
-        };
-    });
-
-    // Busca por título ou descrição
-    if (busca) {
-        resultado = resultado.filter((demanda) =>
-            [
-                demanda.titulo,
-                demanda.descricao
-            ].some((campo) => normalizar(campo).includes(busca))
-        );
-    }
-
-    // Filtro por status
-    if (status && status !== "todos") {
-        resultado = resultado.filter(
-            (demanda) => normalizar(demanda.status) === status
-        );
-    }
-
-    // Filtro por prioridade
-    if (prioridade && prioridade !== "todas") {
-        resultado = resultado.filter(
-            (demanda) => normalizar(demanda.prioridade) === prioridade
-        );
-    }
-
-    // Filtro por tipo
-    if (tipo && tipo !== "todos") {
-        resultado = resultado.filter(
-            (demanda) => normalizar(demanda.tipo) === tipo
-        );
-    }
-
-    // Ordenação por prioridade
-    const ordemPrioridade: Record<string, number> = {
-        "crítica": 1,
-        "critica": 1,
-        "alta": 2,
-        "média": 3,
-        "media": 3,
-        "baixa": 4
-    };
-
-    if (ordenacao === "prioridade") {
-        resultado.sort(
-            (a, b) =>
-                (ordemPrioridade[normalizar(a.prioridade)] ?? 99) -
-                (ordemPrioridade[normalizar(b.prioridade)] ?? 99)
-        );
-    } else if (ordenacao === "criacao") {
-        resultado.sort((a, b) =>
-            a.dataCriacao.localeCompare(b.dataCriacao)
-        );
-    } else if (ordenacao === "prazo") {
-        resultado.sort((a, b) =>
-            a.prazoFinalizacao.localeCompare(b.prazoFinalizacao)
-        );
-    } else if (ordenacao === "status") {
-        resultado.sort((a, b) =>
-            a.status.localeCompare(b.status, "pt-BR")
-        );
-    }
-
-    // Retorna as demandas encontradas
-    return res.status(200).json(resultado);
 });
 
 export default router;
