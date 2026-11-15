@@ -1,85 +1,228 @@
-/*
-Diego Prandi Silva
-
-Rotas responsaveis pelos detalhes das demandas
-e pelo cadastro e listagem de comentarios
-*/
+/**
+ * Diego Prandi Silva - RA: 25002584
+ *
+ * Arquivo: detalhesDemandas.ts
+ * Descrição: Rotas responsáveis por exibir os detalhes das demandas,
+ * listar os comentários e cadastrar novos comentários no banco de dados Oracle.
+ */
 
 import { Router, Request, Response } from 'express';
-import { demandas, usuarios, comentarios } from '../data/dados';
+import oracledb from 'oracledb';
+import { getConn } from '../database/db';
 
 const router = Router();
 
-// busca uma demanda especifica pelo ID
-router.get('/:id', (req: Request, res: Response) => {
+// Uuuário oadrai para registrar comentarios sem login.
+// como ainda nao tem o sistema de passar o id pelas pagina
+// pra comentar por enquando ta sendo somente o usuario 1
+const USUARIO_PADRAO = 1;
+
+// Busca os detalhes de uma demanda pelo ID
+router.get('/:id', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
-    const demanda = demandas.find((item) => item.id === id);
-
-    if (!demanda) {
-        return res.status(404).json({
-            mensagem: 'Demanda não encontrada.',
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+            mensagem: 'ID da demanda inválido.',
         });
     }
 
-    return res.status(200).json(demanda);
+    let conn;
+
+    try {
+        conn = await getConn();
+
+        const resultado = await conn.execute(
+            `SELECT
+                d.id AS "id",
+                d.titulo AS "titulo",
+                d.descricao AS "descricao",
+                d.tipo AS "tipo",
+                d.prioridade AS "prioridade",
+                d.status AS "status",
+                d.id_projeto AS "projetoId",
+                p.nome AS "projeto",
+                d.id_responsavel AS "responsavelId",
+                u.nome AS "responsavel",
+                TO_CHAR(d.data_criacao, 'DD/MM/YYYY HH24:MI') AS "dataCriacao",
+                TO_CHAR(d.data_ultima_atualizacao, 'DD/MM/YYYY HH24:MI') AS "ultimaAtualizacao",
+                TO_CHAR(d.prazo_finalizacao, 'DD/MM/YYYY') AS "prazoFinalizacao"
+            FROM demandas d
+            INNER JOIN projetos p ON p.id = d.id_projeto
+            LEFT JOIN usuarios u ON u.id = d.id_responsavel
+            WHERE d.id = :id`,
+            { id }
+        );
+
+        const demandas = resultado.rows as any[];
+
+        if (demandas.length === 0) {
+            return res.status(404).json({
+                mensagem: 'Demanda não encontrada.',
+            });
+        }
+
+        return res.status(200).json(demandas[0]);
+    } catch (erro) {
+        console.error('Erro ao buscar detalhes da demanda:', erro);
+
+        return res.status(500).json({
+            mensagem: 'Erro ao consultar os detalhes da demanda.',
+        });
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
+    }
 });
 
-// lista os comentarios de uma demanda
-router.get('/:id/comentarios', (req: Request, res: Response) => {
+// Lista os comentários de uma demanda
+router.get('/:id/comentarios', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
-    const demanda = demandas.find((item) => item.id === id);
-
-    if (!demanda) {
-        return res.status(404).json({
-            mensagem: 'Demanda não encontrada.',
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+            mensagem: 'ID da demanda inválido.',
         });
     }
 
-    const resultado = comentarios.filter((item) => item.demandaId === id);
+    let conn;
 
-    return res.status(200).json(resultado);
+    try {
+        conn = await getConn();
+
+        const demanda = await conn.execute(
+            `SELECT id
+             FROM demandas
+             WHERE id = :id`,
+            { id }
+        );
+
+        if (!demanda.rows || demanda.rows.length === 0) {
+            return res.status(404).json({
+                mensagem: 'Demanda não encontrada.',
+            });
+        }
+
+        const resultado = await conn.execute(
+            `SELECT
+                c.id AS "id",
+                c.id_demanda AS "demandaId",
+                c.id_usuario AS "usuarioId",
+                u.nome AS "usuario",
+                c.texto_comentario AS "texto",
+                TO_CHAR(c.data_hora, 'DD/MM/YYYY HH24:MI') AS "dataHora"
+            FROM comentarios c
+            INNER JOIN usuarios u ON u.id = c.id_usuario
+            WHERE c.id_demanda = :id
+            ORDER BY c.data_hora ASC`,
+            { id }
+        );
+
+        return res.status(200).json(resultado.rows);
+    } catch (erro) {
+        console.error('Erro ao listar comentários:', erro);
+
+        return res.status(500).json({
+            mensagem: 'Erro ao consultar os comentários.',
+        });
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
+    }
 });
 
-// cadastra um comentario na demanda
-router.post('/:id/comentarios', (req: Request, res: Response) => {
+// Cadastra um comentário sem exigir login
+router.post('/:id/comentarios', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const { usuarioId, texto } = req.body;
+    const { texto } = req.body;
 
-    const demanda = demandas.find((item) => item.id === id);
-
-    if (!demanda) {
-        return res.status(404).json({
-            mensagem: 'Demanda não encontrada.',
-        });
-    }
-
-    if (!texto) {
+    if (!Number.isInteger(id) || id <= 0) {
         return res.status(400).json({
-            mensagem: 'Preencha o texto do comentario.',
+            mensagem: 'ID da demanda inválido.',
         });
     }
 
-    const usuario = usuarios.find((item) => item.id === Number(usuarioId));
-
-    if (!usuario) {
+    if (typeof texto !== 'string' || texto.trim() === '') {
         return res.status(400).json({
-            mensagem: 'Usuario invalido.',
+            mensagem: 'Preencha o texto do comentário.',
         });
     }
 
-    const novoComentario = {
-        id: comentarios.length + 1,
-        demandaId: id,
-        usuarioId: usuario.id,
-        texto: texto,
-        dataHora: new Date().toISOString(),
-    };
+    let conn;
 
-    comentarios.push(novoComentario);
+    try {
+        conn = await getConn();
 
-    return res.status(201).json(novoComentario);
+        const demanda = await conn.execute(
+            `SELECT id
+             FROM demandas
+             WHERE id = :id`,
+            { id }
+        );
+
+        if (!demanda.rows || demanda.rows.length === 0) {
+            return res.status(404).json({
+                mensagem: 'Demanda não encontrada.',
+            });
+        }
+
+        const resultado = await conn.execute(
+            `INSERT INTO comentarios (
+                id_demanda,
+                id_usuario,
+                texto_comentario
+            )
+            VALUES (
+                :idDemanda,
+                :idUsuario,
+                :texto
+            )
+            RETURNING id INTO :idComentario`,
+            {
+                idDemanda: id,
+                idUsuario: USUARIO_PADRAO,
+                texto: texto.trim(),
+                idComentario: {
+                    dir: oracledb.BIND_OUT,
+                    type: oracledb.NUMBER,
+                },
+            },
+            { autoCommit: true }
+        );
+
+        const idComentario = (resultado.outBinds as any).idComentario[0];
+
+        const novoComentario = await conn.execute(
+            `SELECT
+                c.id AS "id",
+                c.id_demanda AS "demandaId",
+                c.id_usuario AS "usuarioId",
+                u.nome AS "usuario",
+                c.texto_comentario AS "texto",
+                TO_CHAR(c.data_hora, 'DD/MM/YYYY HH24:MI') AS "dataHora"
+            FROM comentarios c
+            INNER JOIN usuarios u ON u.id = c.id_usuario
+            WHERE c.id = :idComentario`,
+            { idComentario }
+        );
+
+        return res.status(201).json({
+            mensagem: 'Comentário cadastrado com sucesso.',
+            comentario: (novoComentario.rows as any[])[0],
+        });
+    } catch (erro) {
+        console.error('Erro ao cadastrar comentário:', erro);
+
+        return res.status(500).json({
+            mensagem: 'Erro ao cadastrar o comentário.',
+        });
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
+    }
 });
 
 export default router;

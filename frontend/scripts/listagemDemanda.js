@@ -1,165 +1,231 @@
-/* 
+/*
  * Feito por Rafael França Cardoso
  *
- * Este arquivo JavaScript é responsável pelas funcionalidades da página de Listagem de Demandas.
+ * Este arquivo JavaScript é responsável pela integração
+ * da página de Listagem de Demandas com a API.
  *
  * Busca:
- * Permite pesquisar demandas pelo título, projeto, responsável e datas.
+ * Consulta demandas pelo título, projeto, responsável e datas.
  *
  * Filtros:
- * Permite filtrar as demandas por status, prioridade e tipo.
+ * Permite filtrar por status, prioridade e tipo.
  *
  * Ordenação:
- * Permite ordenar as demandas por prioridade, data de criação,
- * prazo de finalização ou status.
+ * Permite ordenar as demandas pelos critérios disponíveis.
  *
- * Reset:
- * Permite limpar os filtros e retornar a lista para o estado inicial.
+ * Paginação:
+ * Organiza a exibição das demandas em páginas,
+ * apresentando até 10 registros por vez.
+ * 
+ * Integração:
+ * Utiliza fetch para consumir a API e exibir os registros
+ * armazenados no banco de dados Oracle.
  *
- * Mensagem:
- * Exibe uma mensagem quando nenhuma demanda corresponde aos filtros.
+ * Mensagens:
+ * Exibe erros retornados pela API e informa quando não
+ * existem demandas correspondentes à pesquisa.
  */
 
+// Endereço da API.
+const API_URL = "http://localhost:3000";
+
+// Elementos da página.
 const busca = document.querySelector("#busca");
 const status = document.querySelector("#status");
 const prioridade = document.querySelector("#prioridade");
 const tipo = document.querySelector("#tipo");
-const botaoFiltrar = document.querySelector("#btn-filtrar");
-const botaoResetar = document.querySelector("#btn-resetar");
-const mensagemSemResultados = document.querySelector("#sem-resultados");
 const ordenacao = document.querySelector("#ordenacao");
 
-const linhas = document.querySelectorAll("tbody tr");
-const linhasOriginais = Array.from(linhas);
+const botaoFiltrar = document.querySelector("#btn-filtrar");
+const botaoResetar = document.querySelector("#btn-resetar");
 
-function filtrarDemandas() {
-    const texto = busca.value.toLowerCase();
-    const statusSelecionado = status.value.toLowerCase();
-    const prioridadeSelecionada = prioridade.value.toLowerCase();
-    const tipoSelecionado = tipo.value.toLowerCase();
+const tbody = document.querySelector("#lista-demandas");
+const mensagemSemResultados = document.querySelector("#sem-resultados");
+const mensagemErro = document.querySelector("#mensagem-erro");
 
-    let encontrouAlguma = false;
+let paginaAtual = 1;
+const limitePorPagina = 10;
 
-    linhas.forEach(function (linha) {
-        const titulo = linha.children[0].textContent.toLowerCase();
-        const projeto = linha.children[4].textContent.toLowerCase();
-        const responsavel = linha.children[5].textContent.toLowerCase();
-        const criacao = linha.children[6].textContent.toLowerCase();
-        const prazo = linha.children[7].textContent.toLowerCase();
-
-        const encontrouTexto =
-            titulo.includes(texto) ||
-            projeto.includes(texto) ||
-            responsavel.includes(texto) ||
-            criacao.includes(texto) ||
-            prazo.includes(texto);
-
-        const conteudo = linha.textContent.toLowerCase();
-
-        const encontrouStatus =
-            statusSelecionado === "todos" ||
-            conteudo.includes(statusSelecionado);
-
-        const encontrouPrioridade =
-            prioridadeSelecionada === "todas" ||
-            conteudo.includes(prioridadeSelecionada);
-
-        const encontrouTipo =
-            tipoSelecionado === "todos" ||
-            conteudo.includes(tipoSelecionado);
-
-        if (
-            encontrouTexto &&
-            encontrouStatus &&
-            encontrouPrioridade &&
-            encontrouTipo
-        ) {
-            linha.style.display = "";
-            encontrouAlguma = true;
-        } else {
-            linha.style.display = "none";
-        }
-    });
-
-    if (encontrouAlguma) {
-        mensagemSemResultados.style.display = "none";
-    } else {
-        mensagemSemResultados.style.display = "block";
+// Formata as datas recebidas da API.
+function formatarData(data) {
+    if (!data) {
+        return "-";
     }
 
-    botaoResetar.style.display = "block";
+    const partes = String(data).split("T")[0].split("-");
+
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    return data;
 }
 
-function ordenarDemandas() {
-    const tbody = document.querySelector("tbody");
-    const linhasArray = Array.from(linhas);
+// Define a classe CSS de acordo com o status.
+function classeStatus(valor) {
+    const classes = {
+        "aberta": "aberta",
+        "em andamento": "andamento",
+        "em revisão": "revisao",
+        "concluída": "concluida",
+        "cancelada": "cancelada"
+    };
 
-    if (ordenacao.value === "prioridade") {
-        const ordem = {
-            "crítica": 1,
-            "alta": 2,
-            "média": 3,
-            "baixa": 4
-        };
+    return classes[valor.toLowerCase()] || "aberta";
+}
 
-        linhasArray.sort(function (a, b) {
-            const prioridadeA = a.children[2].textContent.trim().toLowerCase();
-            const prioridadeB = b.children[2].textContent.trim().toLowerCase();
+// Define a classe CSS de acordo com a prioridade.
+function classePrioridade(valor) {
+    const classes = {
+        "crítica": "critica",
+        "critica": "critica",
+        "alta": "alta",
+        "média": "media",
+        "media": "media",
+        "baixa": "baixa"
+    };
 
-            return ordem[prioridadeA] - ordem[prioridadeB];
-        });
+    return classes[valor.toLowerCase()] || "baixa";
+}
+
+// Cria um elemento de texto para evitar inserir HTML recebido da API.
+function criarCelula(texto) {
+    const td = document.createElement("td");
+
+    td.textContent = texto ?? "-";
+
+    return td;
+}
+
+// Cria uma etiqueta de status ou prioridade.
+function criarEtiqueta(texto, classe) {
+    const span = document.createElement("span");
+
+    span.className = classe;
+    span.textContent = texto;
+
+    return span;
+}
+
+// Cria as linhas da tabela com os dados recebidos.
+function exibirDemandas(demandas) {
+    tbody.innerHTML = "";
+
+    if (demandas.length === 0) {
+        mensagemSemResultados.style.display = "block";
+        return;
     }
 
-    if (ordenacao.value === "criacao") {
-        linhasArray.sort(function (a, b) {
-            const dataA = a.children[6].textContent.split("/").reverse().join("");
-            const dataB = b.children[6].textContent.split("/").reverse().join("");
+    mensagemSemResultados.style.display = "none";
 
-            return dataA.localeCompare(dataB);
-        });
-    }
+    demandas.forEach(function (demanda) {
+        const linha = document.createElement("tr");
 
-    if (ordenacao.value === "prazo") {
-        linhasArray.sort(function (a, b) {
-            const dataA = a.children[7].textContent.split("/").reverse().join("");
-            const dataB = b.children[7].textContent.split("/").reverse().join("");
+        linha.appendChild(criarCelula(demanda.titulo));
+        linha.appendChild(criarCelula(demanda.tipo));
 
-            return dataA.localeCompare(dataB);
-        });
-    }
+        const prioridadeCelula = document.createElement("td");
 
-    if (ordenacao.value === "status") {
-        linhasArray.sort(function (a, b) {
-            const statusA = a.children[3].textContent.trim();
-            const statusB = b.children[3].textContent.trim();
+        prioridadeCelula.appendChild(
+            criarEtiqueta(
+                demanda.prioridade,
+                `prioridade ${classePrioridade(demanda.prioridade)}`
+            )
+        );
 
-            return statusA.localeCompare(statusB);
-        });
-    }
+        linha.appendChild(prioridadeCelula);
 
-    linhasArray.forEach(function (linha) {
+        const statusCelula = document.createElement("td");
+
+        statusCelula.appendChild(
+            criarEtiqueta(
+                demanda.status,
+                `status ${classeStatus(demanda.status)}`
+            )
+        );
+
+        linha.appendChild(statusCelula);
+
+        linha.appendChild(criarCelula(demanda.projeto));
+        linha.appendChild(criarCelula(demanda.responsavel));
+        linha.appendChild(criarCelula(formatarData(demanda.dataCriacao)));
+        linha.appendChild(criarCelula(formatarData(demanda.prazoFinalizacao)));
+
+        // Cria o botão para acessar os detalhes da demanda.
+        const acoes = document.createElement("td");
+        const botaoVisualizar = document.createElement("a");
+
+        botaoVisualizar.className = "btn-visualizar";
+        botaoVisualizar.textContent = "Visualizar";
+        botaoVisualizar.href = `detalhesDemanda.html?id=${encodeURIComponent(demanda.id)}`;
+
+        acoes.appendChild(botaoVisualizar);
+        linha.appendChild(acoes);
+
         tbody.appendChild(linha);
     });
 }
 
-botaoFiltrar.addEventListener("click", function () {
-    filtrarDemandas();
-    ordenarDemandas();
+// Consulta a API utilizando os filtros selecionados.
+async function carregarDemandas() {
+    mensagemErro.textContent = "";
+    mensagemSemResultados.style.display = "none";
 
-    const temFiltro =
-        busca.value !== "" ||
-        status.value !== "Todos" ||
-        prioridade.value !== "Todas" ||
-        tipo.value !== "Todos" ||
-        ordenacao.value !== "nenhuma";
+    const parametros = new URLSearchParams({
+        busca: busca.value.trim(),
+        status: status.value,
+        prioridade: prioridade.value,
+        tipo: tipo.value,
+        ordenacao: ordenacao.value,
+        pagina: paginaAtual,
+        limite: limitePorPagina
+    });
 
-    if (temFiltro) {
+    try {
+        const resposta = await fetch(
+            `${API_URL}/demandas?${parametros.toString()}`,
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(dados.mensagem || "Erro ao carregar demandas.");
+        }
+
+        exibirDemandas(dados.demandas);
+        atualizarPaginacao(dados.total, dados.pagina);
+
+        const temFiltro =
+            busca.value.trim() !== "" ||
+            status.value !== "Todos" ||
+            prioridade.value !== "Todas" ||
+            tipo.value !== "Todos" ||
+            ordenacao.value !== "nenhuma";
+
+        botaoResetar.style.display = temFiltro ? "block" : "none";
+
+    } catch (erro) {
+        console.error("Erro na integração com a API:", erro);
+
+        tbody.innerHTML = "";
+        mensagemSemResultados.style.display = "none";
+        mensagemErro.style.display = "block";
+        mensagemErro.textContent = erro.message;
         botaoResetar.style.display = "block";
-    } else {
-        botaoResetar.style.display = "none";
     }
+}
+
+// Aplica os filtros selecionados (volta para a página 1).
+botaoFiltrar.addEventListener("click", function () {
+    paginaAtual = 1;
+    carregarDemandas();
 });
 
+// Limpa os filtros e carrega novamente todas as demandas (volta para a página 1).
 botaoResetar.addEventListener("click", function () {
     busca.value = "";
     status.value = "Todos";
@@ -167,13 +233,34 @@ botaoResetar.addEventListener("click", function () {
     tipo.value = "Todos";
     ordenacao.value = "nenhuma";
 
-    const tbody = document.querySelector("tbody");
-
-    linhasOriginais.forEach(function (linha) {
-        linha.style.display = "";
-        tbody.appendChild(linha);
-    });
-
-    mensagemSemResultados.style.display = "none";
-    botaoResetar.style.display = "none";
+    paginaAtual = 1;
+    carregarDemandas();
 });
+
+// Eventos dos botões de paginação
+document.getElementById("pagina-anterior").addEventListener("click", () => {
+    if (paginaAtual > 1) {
+        paginaAtual--;
+        carregarDemandas();
+    }
+});
+
+document.getElementById("proxima-pagina").addEventListener("click", () => {
+    paginaAtual++;
+    carregarDemandas();
+});
+
+// Atualiza a paginação
+function atualizarPaginacao(total, pagina) {
+    const totalPaginas = Math.ceil(total / limitePorPagina);
+
+    document.getElementById("informacao-paginacao").textContent =
+        `Página ${pagina} de ${totalPaginas || 1} (${total} demandas)`;
+
+    document.getElementById("pagina-anterior").disabled = pagina <= 1;
+    document.getElementById("proxima-pagina").disabled =
+        pagina >= totalPaginas;
+}
+
+// Carrega as demandas assim que a página é aberta.
+carregarDemandas();

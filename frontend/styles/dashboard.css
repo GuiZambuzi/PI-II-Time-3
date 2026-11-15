@@ -427,7 +427,9 @@ body {
 */
 .demand[hidden],
 .filtros-aplicados[hidden],
-.sem-resultados[hidden] {
+.sem-resultados[hidden],
+.mensagem-erro[hidden],
+.lista-vazia[hidden] {
     display: none !important;
 }
 
@@ -495,4 +497,23 @@ body {
     .btn-secondary {
         width: 100%;
     }
+}
+
+/* -------------------------------------------------------------
+   Integracao com a API: mensagem de erro e listas vazias
+   ------------------------------------------------------------- */
+.mensagem-erro {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.lista-vazia {
+    font-size: 14px;
+    color: var(--cor-texto-secundario);
+    padding: 8px 0;
 }
