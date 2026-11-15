@@ -20,6 +20,9 @@ router.get("/", async (req: Request, res: Response) => {
         const prioridade = String(req.query.prioridade || "").trim();
         const tipo = String(req.query.tipo || "").trim();
         const ordenacao = String(req.query.ordenacao || "").trim();
+        const pagina = Math.max(1, Number(req.query.pagina) || 1);
+        const limite = 10;
+        const deslocamento = (pagina - 1) * limite;
 
         let sql = `
             SELECT
@@ -39,11 +42,20 @@ router.get("/", async (req: Request, res: Response) => {
             WHERE 1 = 1
         `;
 
+        let countSql = `
+            SELECT COUNT(*) AS "total"
+            FROM demandas d
+            INNER JOIN projetos p ON d.id_projeto = p.id
+            LEFT JOIN usuarios u ON d.id_responsavel = u.id
+            WHERE 1 = 1
+        `;
+
+        let filtros = "";
         const binds: any = {};
 
         // Busca por título, projeto ou responsável.
         if (busca) {
-            sql += `
+            filtros += `
                 AND (
                     LOWER(d.titulo) LIKE LOWER(:busca)
                     OR LOWER(p.nome) LIKE LOWER(:busca)
@@ -58,21 +70,25 @@ router.get("/", async (req: Request, res: Response) => {
 
         // Filtros.
         if (status && status.toLowerCase() !== "todos") {
-            sql += " AND LOWER(d.status) = LOWER(:status)";
+            filtros += " AND LOWER(d.status) = LOWER(:status)";
             binds.status = status;
         }
 
         if (prioridade && prioridade.toLowerCase() !== "todas") {
-            sql += " AND LOWER(d.prioridade) = LOWER(:prioridade)";
+            filtros += " AND LOWER(d.prioridade) = LOWER(:prioridade)";
             binds.prioridade = prioridade;
         }
 
         if (tipo && tipo.toLowerCase() !== "todos") {
-            sql += " AND LOWER(d.tipo) = LOWER(:tipo)";
+            filtros += " AND LOWER(d.tipo) = LOWER(:tipo)";
             binds.tipo = tipo;
         }
 
-        // Ordenação.
+        // Aplica os mesmos filtros nas duas consultas
+        sql += filtros;
+        countSql += filtros;
+
+        // Ordenação (com critério de desempate d.id DESC).
         if (ordenacao === "prioridade") {
             sql += `
                 ORDER BY CASE LOWER(d.prioridade)
@@ -80,19 +96,41 @@ router.get("/", async (req: Request, res: Response) => {
                     WHEN 'alta' THEN 2
                     WHEN 'média' THEN 3
                     WHEN 'baixa' THEN 4
-                END
+                END, d.id DESC
             `;
         } else if (ordenacao === "criacao") {
-            sql += " ORDER BY d.data_criacao ASC";
+            sql += " ORDER BY d.data_criacao ASC, d.id DESC";
         } else if (ordenacao === "prazo") {
-            sql += " ORDER BY d.prazo_finalizacao ASC";
+            sql += " ORDER BY d.prazo_finalizacao ASC, d.id DESC";
         } else if (ordenacao === "status") {
-            sql += " ORDER BY d.status ASC";
+            sql += " ORDER BY d.status ASC, d.id DESC";
+        } else {
+            sql += " ORDER BY d.data_criacao DESC, d.id DESC";
         }
 
-        const resultado = await conn.execute(sql, binds);
+        // Paginação no final da consulta principal.
+        sql += `
+            OFFSET :deslocamento ROWS
+            FETCH NEXT :limite ROWS ONLY
+        `;
 
-        return res.status(200).json(resultado.rows || []);
+        // Executa a contagem total (apenas com os binds de filtro)
+        const totalResult = await conn.execute(countSql, binds);
+        const total = totalResult.rows && totalResult.rows.length > 0 ? (totalResult.rows[0] as any).total : 0;
+
+        // Executa a consulta principal passando os filtros + deslocamento e limite
+        const resultado = await conn.execute(sql, {
+            ...binds,
+            deslocamento,
+            limite
+        });
+
+        return res.status(200).json({
+            demandas: resultado.rows || [],
+            total,
+            pagina,
+            limite
+        });
 
     } catch (erro) {
         console.error("Erro ao listar demandas:", erro);

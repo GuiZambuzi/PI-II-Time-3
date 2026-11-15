@@ -13,6 +13,10 @@
  * Ordenação:
  * Permite ordenar as demandas pelos critérios disponíveis.
  *
+ * Paginação:
+ * Organiza a exibição das demandas em páginas,
+ * apresentando até 10 registros por vez.
+ * 
  * Integração:
  * Utiliza fetch para consumir a API e exibir os registros
  * armazenados no banco de dados Oracle.
@@ -38,6 +42,9 @@ const botaoResetar = document.querySelector("#btn-resetar");
 const tbody = document.querySelector("#lista-demandas");
 const mensagemSemResultados = document.querySelector("#sem-resultados");
 const mensagemErro = document.querySelector("#mensagem-erro");
+
+let paginaAtual = 1;
+const limitePorPagina = 10;
 
 // Formata as datas recebidas da API.
 function formatarData(data) {
@@ -169,7 +176,9 @@ async function carregarDemandas() {
         status: status.value,
         prioridade: prioridade.value,
         tipo: tipo.value,
-        ordenacao: ordenacao.value
+        ordenacao: ordenacao.value,
+        pagina: paginaAtual,
+        limite: limitePorPagina
     });
 
     try {
@@ -187,7 +196,8 @@ async function carregarDemandas() {
             throw new Error(dados.mensagem || "Erro ao carregar demandas.");
         }
 
-        exibirDemandas(dados);
+        exibirDemandas(dados.demandas);
+        atualizarPaginacao(dados.total, dados.pagina);
 
         const temFiltro =
             busca.value.trim() !== "" ||
@@ -209,12 +219,13 @@ async function carregarDemandas() {
     }
 }
 
-// Aplica os filtros selecionados.
+// Aplica os filtros selecionados (volta para a página 1).
 botaoFiltrar.addEventListener("click", function () {
+    paginaAtual = 1;
     carregarDemandas();
 });
 
-// Limpa os filtros e carrega novamente todas as demandas.
+// Limpa os filtros e carrega novamente todas as demandas (volta para a página 1).
 botaoResetar.addEventListener("click", function () {
     busca.value = "";
     status.value = "Todos";
@@ -222,8 +233,34 @@ botaoResetar.addEventListener("click", function () {
     tipo.value = "Todos";
     ordenacao.value = "nenhuma";
 
+    paginaAtual = 1;
     carregarDemandas();
 });
+
+// Eventos dos botões de paginação
+document.getElementById("pagina-anterior").addEventListener("click", () => {
+    if (paginaAtual > 1) {
+        paginaAtual--;
+        carregarDemandas();
+    }
+});
+
+document.getElementById("proxima-pagina").addEventListener("click", () => {
+    paginaAtual++;
+    carregarDemandas();
+});
+
+// Atualiza a paginação
+function atualizarPaginacao(total, pagina) {
+    const totalPaginas = Math.ceil(total / limitePorPagina);
+
+    document.getElementById("informacao-paginacao").textContent =
+        `Página ${pagina} de ${totalPaginas || 1} (${total} demandas)`;
+
+    document.getElementById("pagina-anterior").disabled = pagina <= 1;
+    document.getElementById("proxima-pagina").disabled =
+        pagina >= totalPaginas;
+}
 
 // Carrega as demandas assim que a página é aberta.
 carregarDemandas();

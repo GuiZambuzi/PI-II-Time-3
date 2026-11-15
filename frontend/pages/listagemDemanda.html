@@ -16,6 +16,9 @@
     Tabela:
     Exibe as informações das demandas cadastradas e suas ações.
 
+    Paginação:
+    Exibe qual página e quantas demandas há.
+
     Mensagem:
     Exibe uma mensagem quando nenhuma demanda é encontrada.
 -->
@@ -152,6 +155,14 @@
                 </table>
 
                 <p id="sem-resultados">Nenhuma demanda encontrada.</p>
+
+                <div class="paginacao">
+                    <button id="pagina-anterior" disabled>Anterior</button>
+
+                    <span id="informacao-paginacao">Página 1</span>
+
+                    <button id="proxima-pagina">Próxima</button>
+                </div> 
 
             </div>
         </div>
