@@ -283,3 +283,13 @@ tbody tr:hover {
     color: #475569;
     font-size: 14px;
 }
+
+#mensagem-erro {
+    display: none;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 7px;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    font-size: 14px;
+}

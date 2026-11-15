@@ -1,183 +1,111 @@
-
 /*
  * Feito por Rafael França Cardoso
  *
- * Rota responsável pela listagem de demandas.
- *
- * Permite buscar, filtrar e ordenar demandas utilizando
- * os dados compartilhados do sistema.
- *
- * Retorna erro 400 quando os parâmetros dos filtros
- * ou da ordenação são inválidos.
+ * Rota responsável por listar as demandas cadastradas.
  */
 
 import { Router, Request, Response } from "express";
-import { demandas, projetos, usuarios } from "../data/dados";
+import { getConn } from "../database/db";
 
 const router = Router();
 
-const normalizar = (valor: unknown): string =>
-    String(valor ?? "").trim().toLocaleLowerCase("pt-BR");
+router.get("/", async (req: Request, res: Response) => {
+    let conn;
 
-router.get("/", (req: Request, res: Response) => {
-    const busca = normalizar(req.query.busca);
-    const status = normalizar(req.query.status);
-    const prioridade = normalizar(req.query.prioridade);
-    const tipo = normalizar(req.query.tipo);
-    const ordenacao = normalizar(req.query.ordenacao);
+    try {
+        conn = await getConn();
 
-    const statusPermitidos = [
-        "aberta",
-        "em andamento",
-        "em revisão",
-        "concluída",
-        "cancelada"
-    ];
+        const busca = String(req.query.busca || "").trim();
+        const status = String(req.query.status || "").trim();
+        const prioridade = String(req.query.prioridade || "").trim();
+        const tipo = String(req.query.tipo || "").trim();
+        const ordenacao = String(req.query.ordenacao || "").trim();
 
-    const prioridadesPermitidas = [
-        "crítica",
-        "critica",
-        "alta",
-        "média",
-        "media",
-        "baixa"
-    ];
+        let sql = `
+            SELECT
+                d.id AS "id",
+                d.titulo AS "titulo",
+                DBMS_LOB.SUBSTR(d.descricao, 4000, 1) AS "descricao",
+                d.tipo AS "tipo",
+                d.prioridade AS "prioridade",
+                d.status AS "status",
+                p.nome AS "projeto",
+                NVL(u.nome, 'Não atribuído') AS "responsavel",
+                TO_CHAR(d.data_criacao, 'YYYY-MM-DD') AS "dataCriacao",
+                TO_CHAR(d.prazo_finalizacao, 'YYYY-MM-DD') AS "prazoFinalizacao"
+            FROM demandas d
+            INNER JOIN projetos p ON d.id_projeto = p.id
+            LEFT JOIN usuarios u ON d.id_responsavel = u.id
+            WHERE 1 = 1
+        `;
 
-    const tiposPermitidos = [
-        "tarefa",
-        "defeito",
-        "melhoria",
-        "documentação"
-    ];
+        const binds: any = {};
 
-    const ordenacoesPermitidas = [
-        "prioridade",
-        "criacao",
-        "prazo",
-        "status"
-    ];
+        // Busca por título, projeto ou responsável.
+        if (busca) {
+            sql += `
+                AND (
+                    LOWER(d.titulo) LIKE LOWER(:busca)
+                    OR LOWER(p.nome) LIKE LOWER(:busca)
+                    OR LOWER(u.nome) LIKE LOWER(:busca)
+                    OR TO_CHAR(d.data_criacao, 'DD/MM/YYYY') LIKE :busca
+                    OR TO_CHAR(d.prazo_finalizacao, 'DD/MM/YYYY') LIKE :busca
+                )
+            `;
 
-    // Validação dos parâmetros recebidos
-    if (
-        status &&
-        status !== "todos" &&
-        !statusPermitidos.includes(status)
-    ) {
-        return res.status(400).json({
-            mensagem: "Status inválido."
+            binds.busca = `%${busca}%`;
+        }
+
+        // Filtros.
+        if (status && status.toLowerCase() !== "todos") {
+            sql += " AND LOWER(d.status) = LOWER(:status)";
+            binds.status = status;
+        }
+
+        if (prioridade && prioridade.toLowerCase() !== "todas") {
+            sql += " AND LOWER(d.prioridade) = LOWER(:prioridade)";
+            binds.prioridade = prioridade;
+        }
+
+        if (tipo && tipo.toLowerCase() !== "todos") {
+            sql += " AND LOWER(d.tipo) = LOWER(:tipo)";
+            binds.tipo = tipo;
+        }
+
+        // Ordenação.
+        if (ordenacao === "prioridade") {
+            sql += `
+                ORDER BY CASE LOWER(d.prioridade)
+                    WHEN 'crítica' THEN 1
+                    WHEN 'alta' THEN 2
+                    WHEN 'média' THEN 3
+                    WHEN 'baixa' THEN 4
+                END
+            `;
+        } else if (ordenacao === "criacao") {
+            sql += " ORDER BY d.data_criacao ASC";
+        } else if (ordenacao === "prazo") {
+            sql += " ORDER BY d.prazo_finalizacao ASC";
+        } else if (ordenacao === "status") {
+            sql += " ORDER BY d.status ASC";
+        }
+
+        const resultado = await conn.execute(sql, binds);
+
+        return res.status(200).json(resultado.rows || []);
+
+    } catch (erro) {
+        console.error("Erro ao listar demandas:", erro);
+
+        return res.status(500).json({
+            mensagem: "Não foi possível carregar as demandas."
         });
+
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
     }
-
-    if (
-        prioridade &&
-        prioridade !== "todas" &&
-        !prioridadesPermitidas.includes(prioridade)
-    ) {
-        return res.status(400).json({
-            mensagem: "Prioridade inválida."
-        });
-    }
-
-    if (
-        tipo &&
-        tipo !== "todos" &&
-        !tiposPermitidos.includes(tipo)
-    ) {
-        return res.status(400).json({
-            mensagem: "Tipo inválido."
-        });
-    }
-
-    if (
-        ordenacao &&
-        ordenacao !== "nenhuma" &&
-        !ordenacoesPermitidas.includes(ordenacao)
-    ) {
-        return res.status(400).json({
-            mensagem: "Ordenação inválida."
-        });
-    }
-
-    // Relaciona cada demanda ao projeto e ao responsável
-    let resultado = demandas.map((demanda) => {
-        const projeto = projetos.find(
-            (item) => item.id === demanda.projetoId
-        );
-
-        const usuario = usuarios.find(
-            (item) => item.id === demanda.responsavelId
-        );
-
-        return {
-            ...demanda,
-            projeto: projeto?.nome ?? "Sem projeto",
-            responsavel: usuario?.nome ?? "Não atribuído"
-        };
-    });
-
-    // Busca por título ou descrição
-    if (busca) {
-        resultado = resultado.filter((demanda) =>
-            [
-                demanda.titulo,
-                demanda.descricao
-            ].some((campo) => normalizar(campo).includes(busca))
-        );
-    }
-
-    // Filtro por status
-    if (status && status !== "todos") {
-        resultado = resultado.filter(
-            (demanda) => normalizar(demanda.status) === status
-        );
-    }
-
-    // Filtro por prioridade
-    if (prioridade && prioridade !== "todas") {
-        resultado = resultado.filter(
-            (demanda) => normalizar(demanda.prioridade) === prioridade
-        );
-    }
-
-    // Filtro por tipo
-    if (tipo && tipo !== "todos") {
-        resultado = resultado.filter(
-            (demanda) => normalizar(demanda.tipo) === tipo
-        );
-    }
-
-    // Ordenação por prioridade
-    const ordemPrioridade: Record<string, number> = {
-        "crítica": 1,
-        "critica": 1,
-        "alta": 2,
-        "média": 3,
-        "media": 3,
-        "baixa": 4
-    };
-
-    if (ordenacao === "prioridade") {
-        resultado.sort(
-            (a, b) =>
-                (ordemPrioridade[normalizar(a.prioridade)] ?? 99) -
-                (ordemPrioridade[normalizar(b.prioridade)] ?? 99)
-        );
-    } else if (ordenacao === "criacao") {
-        resultado.sort((a, b) =>
-            a.dataCriacao.localeCompare(b.dataCriacao)
-        );
-    } else if (ordenacao === "prazo") {
-        resultado.sort((a, b) =>
-            a.prazoFinalizacao.localeCompare(b.prazoFinalizacao)
-        );
-    } else if (ordenacao === "status") {
-        resultado.sort((a, b) =>
-            a.status.localeCompare(b.status, "pt-BR")
-        );
-    }
-
-    // Retorna as demandas encontradas
-    return res.status(200).json(resultado);
 });
 
 export default router;
