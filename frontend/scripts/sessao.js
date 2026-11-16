@@ -11,7 +11,15 @@ autenticado caso ele mude de pagina
 let usuarioAtual = null;
 
 async function carregarSessao() {
-    const resposta = await fetch("http://localhost:3000/sessao", { credentials: "include" });
+    let resposta;
+
+    try {
+        resposta = await fetch("http://localhost:3000/sessao", { credentials: "include" });
+    } catch (erro) {
+        // servidor fora do ar: não dá para confirmar a sessão
+        console.error("Não foi possível verificar a sessão:", erro);
+        return;
+    }
 
     // se não tiver sessão (não logou, expirou ou fez logout): volta ao login
     if (resposta.status === 401) {
@@ -22,8 +30,12 @@ async function carregarSessao() {
     // se tudo der certo, espera o json da resposta e cria uma mensagem de saudação
     // junto com o nome do usuario e o seu perfil
     usuarioAtual = await resposta.json();
-    document.querySelector("#saudacaoUsuario").textContent = `Olá, ${usuarioAtual.nome}!`;
-    document.querySelector("#perfilUsuario").textContent = usuarioAtual.perfil;
+
+    // os elementos só são preenchidos se existirem na página
+    const saudacao = document.querySelector("#saudacaoUsuario");
+    const perfil = document.querySelector("#perfilUsuario");
+    if (saudacao) saudacao.textContent = `Olá, ${usuarioAtual.nome}!`;
+    if (perfil) perfil.textContent = usuarioAtual.perfil;
 }
 
 // serve pra quando o usuario apertar no botão de sair, ele seja levado
@@ -36,4 +48,5 @@ async function sair() {
 
 carregarSessao();
 
-document.querySelector("#botaoSair").addEventListener("click", sair);
+// liga o botão Sair, se a página tiver o botão (evita erro em páginas sem ele)
+document.querySelector("#botaoSair")?.addEventListener("click", sair);

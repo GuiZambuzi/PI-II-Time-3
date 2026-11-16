@@ -12,11 +12,6 @@ import { getConn } from '../database/db';
 
 const router = Router();
 
-// Uuuário oadrai para registrar comentarios sem login.
-// como ainda nao tem o sistema de passar o id pelas pagina
-// pra comentar por enquando ta sendo somente o usuario 1
-const USUARIO_PADRAO = 1;
-
 // Busca os detalhes de uma demanda pelo ID
 router.get('/:id', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
@@ -133,10 +128,18 @@ router.get('/:id/comentarios', async (req: Request, res: Response) => {
     }
 });
 
-// Cadastra um comentário sem exigir login
+// Cadastra um comentário em nome do usuário logado
+// (as rotas de /demandas exigem login: exigirLogin no server.ts)
 router.post('/:id/comentarios', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const { texto } = req.body;
+
+    const usuarioLogado = req.session.usuario;
+    if (!usuarioLogado) {
+        return res.status(401).json({
+            mensagem: 'Faça login para continuar.',
+        });
+    }
 
     if (!Number.isInteger(id) || id <= 0) {
         return res.status(400).json({
@@ -182,7 +185,7 @@ router.post('/:id/comentarios', async (req: Request, res: Response) => {
             RETURNING id INTO :idComentario`,
             {
                 idDemanda: id,
-                idUsuario: USUARIO_PADRAO,
+                idUsuario: usuarioLogado.id,
                 texto: texto.trim(),
                 idComentario: {
                     dir: oracledb.BIND_OUT,
