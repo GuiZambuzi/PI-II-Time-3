@@ -7,6 +7,7 @@ import cadastroDemandaRouter from './routes/cadastroDemanda';
 import detalhesDemandasRouter from './routes/detalhesDemandas';
 import dashboardRouter from './routes/dashboard';
 import { initPool, getConn, closePool } from './database/db';
+import { exigirLogin } from './middleware/exigirLogin';
 
 const app = express();
 const PORT = 3000;
@@ -55,13 +56,14 @@ app.get('/', (req, res) => {
 app.use('/dashboard', dashboardRouter);
 
 // Rota de listagem de demandas
-app.use('/demandas', demandasRouter);
+// exigirLogin (João Victor Grisolia Luis): sem login, as rotas de /demandas respondem 401
+app.use('/demandas', exigirLogin, demandasRouter);
 
 // Rotas de usuários e autenticação (POST /login, GET /sessao, POST /logout, GET /usuarios)
 app.use('/', usuariosRouter);
 
-// Rota de detalhes de demandas
-app.use('/demandas', detalhesDemandasRouter);
+// Rota de detalhes de demandas (detalhes e comentários; também exigem login)
+app.use('/demandas', exigirLogin, detalhesDemandasRouter);
 
 // Rota de Cadastro de demandas
 app.use('/', cadastroDemandaRouter);
