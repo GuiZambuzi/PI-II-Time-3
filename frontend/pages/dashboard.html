@@ -14,11 +14,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="../styles/global.css" />
         <link rel="stylesheet" href="../styles/dashboard.css" />
+        <link rel="stylesheet" href="../styles/sessao.css" />
 
         <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon" />
         <title>Dashboard | Demandly</title>
 
         <!-- Script com as validacoes e o comportamento dos filtros (defer: roda apos o HTML) -->
+        <script src="../scripts/sessao.js" defer></script>
         <script src="../scripts/dashboard.js" defer></script>
     </head>
     <body>
@@ -38,12 +40,11 @@
                 </nav>
             </div>
 
-            <div class="perfil-container">
-                <a href="#perfil"
-                    ><img
-                        src="https://i.pinimg.com/736x/32/9b/54/329b54d07444f009b0634f438db9a449.jpg"
-                        alt="Perfil do usuário"
-                /></a>
+            <!-- Usuario logado (preenchido por sessao.js) e botao de logout -->
+            <div class="usuario-container">
+                <span id="saudacaoUsuario">Carregando...</span>
+                <span id="perfilUsuario"></span>
+                <button type="button" id="botaoSair">Sair</button>
             </div>
         </header>
 
