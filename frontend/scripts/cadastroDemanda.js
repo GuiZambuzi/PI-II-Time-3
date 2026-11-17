@@ -1,6 +1,6 @@
 /* 
  * Autor: Guilherme Henrique Lopes Zambuzi
- * Descrição: Validações de frontend e integração com a API Oracle para a tela de Cadastro/Edição de Demandas - PI2.
+ * Descrição: Validações de frontend, listagem dinâmica de projetos/responsáveis e regras de perfil para a tela de Cadastro de Demandas - PI2.
  */
 
 const API_URL = "http://localhost:3000";
@@ -8,16 +8,42 @@ const API_URL = "http://localhost:3000";
 document.addEventListener("DOMContentLoaded", async function() {
     const form = document.getElementById("demanda-form");
     const selectProjeto = document.getElementById("id_projeto");
+    const selectResponsavel = document.getElementById("id_responsavel");
+    const btnCancelar = document.querySelector(".btn-secondary");
 
-    // 1. CARREGAR OS PROJETOS DO USUÁRIO LOGADO AO ABRIR A PÁGINA
+    // Lógica do botão Cancelar
+    if (btnCancelar) {
+        btnCancelar.addEventListener("click", function() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = "listagemDemanda.html";
+            }
+        });
+    }
+
+    let usuarioLogado = null;
+
+    // 0. VERIFICAR SESSÃO E PERFIL DO USUÁRIO LOGADO
     try {
-        // credentials: "include" faz o navegador enviar o cookie da sessão (demandly.sid)
+        const respSessao = await fetch(`${API_URL}/sessao`, {
+            credentials: "include"
+        });
+        if (respSessao.ok) {
+            usuarioLogado = await respSessao.json();
+        }
+    } catch (e) {
+        console.log("Usuário não autenticado ou sessão expirada.");
+    }
+
+    // 1. CARREGAR OS PROJETOS DO SERVIDOR AO ABRIR A PÁGINA
+    try {
         const resposta = await fetch(`${API_URL}/projetos`, {
             credentials: "include"
         });
 
         if (resposta.status === 401) {
-            selectProjeto.innerHTML = '<option value="" disabled selected>Faça login para ver seus projetos</option>';
+            selectProjeto.innerHTML = '<option value="" disabled selected>Faça login para ver os projetos</option>';
             return;
         }
 
@@ -29,12 +55,11 @@ document.addEventListener("DOMContentLoaded", async function() {
         selectProjeto.innerHTML = '<option value="" disabled selected>Selecione um projeto...</option>';
 
         if (projetos.length === 0) {
-            selectProjeto.innerHTML = '<option value="" disabled selected>Você não possui projetos vinculados</option>';
+            selectProjeto.innerHTML = '<option value="" disabled selected>Nenhum projeto encontrado</option>';
         }
         
         projetos.forEach(projeto => {
             const option = document.createElement("option");
-            // Compatível com chaves maiúsculas ou minúsculas do Oracle
             option.value = projeto.ID || projeto.id;
             option.textContent = projeto.NOME || projeto.nome;
             selectProjeto.appendChild(option);
@@ -42,6 +67,37 @@ document.addEventListener("DOMContentLoaded", async function() {
     } catch (erro) {
         console.error("Erro ao buscar projetos:", erro);
         selectProjeto.innerHTML = '<option value="" disabled selected>Erro ao carregar projetos</option>';
+    }
+
+    // 1.1. CARREGAR OS USUÁRIOS/RESPONSÁVEIS DO SERVIDOR
+    try {
+        const respUsuarios = await fetch(`${API_URL}/usuarios`, {
+            credentials: "include"
+        });
+
+        if (respUsuarios.ok) {
+            const usuarios = await respUsuarios.json();
+            selectResponsavel.innerHTML = '<option value="" selected>Sem responsável (Opcional)</option>';
+
+            usuarios.forEach(user => {
+                const option = document.createElement("option");
+                const userId = user.ID || user.id;
+                const userName = user.NOME || user.nome;
+                const userPerfil = user.PERFIL || user.perfil;
+
+                option.value = userId;
+                option.textContent = `${userName} (${userPerfil})`;
+                selectResponsavel.appendChild(option);
+            });
+
+            // Regra de Permissão (Escopo): Se for Membro da Equipe, ele só pode abrir para si mesmo
+            if (usuarioLogado && usuarioLogado.perfil === "Membro da Equipe") {
+                selectResponsavel.value = usuarioLogado.id;
+                selectResponsavel.disabled = true; // Trava o campo para evitar burlar a regra visualmente
+            }
+        }
+    } catch (erro) {
+        console.error("Erro ao buscar usuários responsáveis:", erro);
     }
 
     // 2. VALIDAÇÃO E ENVIO DO FORMULÁRIO
@@ -82,8 +138,8 @@ document.addEventListener("DOMContentLoaded", async function() {
             formularioValido = false;
         }
 
-        // Validação do Responsável (Opcional, mas se selecionado precisa existir)
-        const id_responsavel = document.getElementById("id_responsavel").value;
+        // Responsável (se estiver travado para membro da equipe, garante o ID dele)
+        const id_responsavel = selectResponsavel.disabled ? usuarioLogado?.id : selectResponsavel.value;
 
         // Validação do Prazo de Finalização
         const prazo_finalizacao = document.getElementById("prazo_finalizacao").value;
@@ -131,14 +187,13 @@ document.addEventListener("DOMContentLoaded", async function() {
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    credentials: "include", // envia o cookie da sessão
+                    credentials: "include",
                     body: JSON.stringify(dadosDemanda)
                 });
 
                 const resultado = await respostaApi.json();
 
                 if (!respostaApi.ok) {
-                    // Exibe o erro retornado pela API na tela, conforme exigido na Reunião 5
                     alert("Erro " + respostaApi.status + ": " + (resultado.mensagem || "Erro ao cadastrar."));
                     return;
                 }
@@ -146,6 +201,11 @@ document.addEventListener("DOMContentLoaded", async function() {
                 alert(resultado.mensagem || "Demanda cadastrada com sucesso!");
                 form.reset();
                 
+                // Reaplica a trava de membro da equipe caso limpe o form
+                if (usuarioLogado && usuarioLogado.perfil === "Membro da Equipe") {
+                    selectResponsavel.value = usuarioLogado.id;
+                }
+
             } catch (erro) {
                 console.error("Erro de conexão:", erro);
                 alert("Não foi possível conectar ao servidor backend.");
@@ -170,3 +230,4 @@ function limparErros() {
         spansDeErro[i].style.display = "none";
     }
 }
+

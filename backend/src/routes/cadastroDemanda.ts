@@ -69,6 +69,23 @@ router.get("/projetos", exigirLogin, async (req: Request, res: Response) => {
     }
 });
 
+// Rota GET /usuarios para preencher o select de responsáveis no frontend
+router.get("/usuarios", async (req: Request, res: Response) => {
+    let conn;
+    try {
+        conn = await getConn();
+        const resultado: any = await conn.execute(
+            `SELECT id AS "id", nome AS "nome", perfil AS "perfil" FROM usuarios ORDER BY nome`
+        );
+        return res.status(200).json(resultado.rows || []);
+    } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+        return res.status(500).json({ mensagem: "Erro ao buscar usuários." });
+    } finally {
+        if (conn) await conn.close();
+    }
+});
+
 // 2. ROTA POST /demandas: Cadastra uma nova demanda com validações e persistência no Oracle
 router.post("/demandas", exigirLogin, async (req: Request, res: Response) => {
     const { titulo, descricao, tipo, prioridade, id_projeto, id_responsavel, prazo_finalizacao } = req.body;
