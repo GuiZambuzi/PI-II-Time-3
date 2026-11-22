@@ -6,6 +6,8 @@
 
 import { Router, Request, Response } from "express";
 import { getConn } from "../database/db";
+// permissões por perfil (João Victor Grisolia Luis)
+import { filtroDemandasVisiveis } from "../middleware/permissoes";
 
 const router = Router();
 
@@ -50,8 +52,12 @@ router.get("/", async (req: Request, res: Response) => {
             WHERE 1 = 1
         `;
 
-        let filtros = "";
-        const binds: any = {};
+        // Permissão por perfil: Líder e Membro só veem as demandas dos projetos
+        // em que estão vinculados ou atribuídas a eles; o Administrador vê todas.
+        const visiveis = filtroDemandasVisiveis(req.session.usuario!);
+
+        let filtros = visiveis.sql;
+        const binds: any = { ...visiveis.binds };
 
         // Busca por título, projeto ou responsável.
         if (busca) {

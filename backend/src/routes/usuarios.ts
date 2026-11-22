@@ -22,6 +22,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { exigirLogin } from "../middleware/exigirLogin";
 import { getConn } from "../database/db";
+import { ehAdministrador } from "../middleware/permissoes";
 
 const router = Router();
 
@@ -164,20 +165,39 @@ router.post("/logout", exigirLogin, (req: Request, res: Response, next: NextFunc
  * GET /usuarios
  * Lista os usuários da tabela usuarios do Oracle (usada, por exemplo, no select
  * de responsável da tela de cadastro). Exige login.
+ * Permissão por perfil: só o Administrador vê todos os usuários (item 2.1.1);
+ * Líder e Membro veem os usuários dos projetos em que estão vinculados (e a si mesmos).
  * 200 -> [{ id, nome, email, perfil }] ordenados por nome (sem senha/hash)
  * 401 -> sem sessão válida
  * 500 -> erro ao consultar o banco de dados
  */
 router.get("/usuarios", exigirLogin, async (req: Request, res: Response) => {
+  const usuarioLogado = req.session.usuario!;
+
   let conn;
   try {
     conn = await getConn();
-    const resultado = await conn.execute<UsuarioSessao>(
-      // a coluna senha_hash não entra no SELECT: o hash nunca sai do banco por esta rota
-      `SELECT id AS "id", nome AS "nome", email AS "email", perfil AS "perfil"
-         FROM usuarios
-        ORDER BY nome`
-    );
+    // a coluna senha_hash não entra no SELECT: o hash nunca sai do banco por esta rota
+    const resultado = ehAdministrador(usuarioLogado)
+      ? await conn.execute<UsuarioSessao>(
+          `SELECT id AS "id", nome AS "nome", email AS "email", perfil AS "perfil"
+             FROM usuarios
+            ORDER BY nome`
+        )
+      : await conn.execute<UsuarioSessao>(
+          `SELECT u.id AS "id", u.nome AS "nome", u.email AS "email", u.perfil AS "perfil"
+             FROM usuarios u
+            WHERE u.id = :idUsuario
+               OR u.id IN (
+                    SELECT up.id_usuario
+                      FROM usuario_projetos up
+                     WHERE up.id_projeto IN (
+                           SELECT id_projeto FROM usuario_projetos WHERE id_usuario = :idUsuario
+                     )
+                  )
+            ORDER BY u.nome`,
+          { idUsuario: usuarioLogado.id }
+        );
     return res.status(200).json(resultado.rows ?? []);
   } catch (erro) {
     console.error("Erro ao listar os usuários no Oracle:", erro instanceof Error ? erro.message : erro);
