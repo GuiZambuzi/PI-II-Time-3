@@ -13,15 +13,29 @@
  * 2. A resposta envia o cookie "demandly.sid" (Set-Cookie) com o identificador da sessão.
  * 3. Nas próximas requisições o navegador devolve o cookie e o servidor
  *    encontra o usuário em req.session.usuario.
+ *
+ * Todos os dados de usuários vêm da tabela usuarios do Oracle (não há mais
+ * dados fixos em memória).
  */
 
 import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
-import { usuarios, Usuario, Perfil } from "../data/usuarioDados";
 import { exigirLogin } from "../middleware/exigirLogin";
 import { getConn } from "../database/db";
 
 const router = Router();
+
+/** Perfis de acesso do sistema (mesmos valores do CHECK da tabela usuarios). */
+export type Perfil = "Administrador" | "Líder de Projeto" | "Membro da Equipe";
+
+/** Usuário como vem da tabela usuarios do Oracle (com o hash, só para uso no backend). */
+export interface Usuario {
+  id: number;
+  nome: string;
+  email: string;
+  senhaHash: string; // hash bcrypt da senha (coluna senha_hash, 60 caracteres)
+  perfil: Perfil;
+}
 
 /** Dados do usuário guardados na sessão (nunca a senha ou o hash). */
 export interface UsuarioSessao {
@@ -148,10 +162,36 @@ router.post("/logout", exigirLogin, (req: Request, res: Response, next: NextFunc
 
 /**
  * GET /usuarios
- * status 200 -> lista de usuários pré-cadastrados, sem a senha.
+ * Lista os usuários da tabela usuarios do Oracle (usada, por exemplo, no select
+ * de responsável da tela de cadastro). Exige login.
+ * 200 -> [{ id, nome, email, perfil }] ordenados por nome (sem senha/hash)
+ * 401 -> sem sessão válida
+ * 500 -> erro ao consultar o banco de dados
  */
-router.get("/usuarios", exigirLogin, (req: Request, res: Response) => {
-  return res.status(200).json(usuarios.map(semSenha));
+router.get("/usuarios", exigirLogin, async (req: Request, res: Response) => {
+  let conn;
+  try {
+    conn = await getConn();
+    const resultado = await conn.execute<UsuarioSessao>(
+      // a coluna senha_hash não entra no SELECT: o hash nunca sai do banco por esta rota
+      `SELECT id AS "id", nome AS "nome", email AS "email", perfil AS "perfil"
+         FROM usuarios
+        ORDER BY nome`
+    );
+    return res.status(200).json(resultado.rows ?? []);
+  } catch (erro) {
+    console.error("Erro ao listar os usuários no Oracle:", erro instanceof Error ? erro.message : erro);
+    return res.status(500).json({ mensagem: "Não foi possível carregar os usuários. Tente novamente." });
+  } finally {
+    // devolve a conexão ao pool, mesmo se der erro
+    if (conn) {
+      try {
+        await conn.close();
+      } catch (e) {
+        console.error("Erro ao fechar conexão:", e);
+      }
+    }
+  }
 });
 
 export default router;
