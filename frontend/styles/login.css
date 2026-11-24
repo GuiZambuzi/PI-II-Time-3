@@ -1,3 +1,14 @@
+/*
+
+João Victor Grisolia Luis - RA: 26005781
+
+Arquivo: login.css
+Descrição: Este arquivo contém a estilização da página de login: layout
+centralizado do formulário, marca (logo), campos de e-mail e senha, botão de
+mostrar/ocultar senha, botão Entrar (inclusive desabilitado durante o envio)
+e os estados de erro dos campos (bordas vermelhas e mensagens de validação).
+*/
+
 * {
   box-sizing: border-box;
 }
