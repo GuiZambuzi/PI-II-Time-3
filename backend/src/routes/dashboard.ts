@@ -22,6 +22,8 @@
 import { Router, Request, Response } from "express";
 import { getConn } from "../database/db";
 import { exigirLogin } from "../middleware/exigirLogin";
+// permissões por perfil (João Victor Grisolia Luis)
+import { filtroDemandasVisiveis } from "../middleware/permissoes";
 
 const router = Router();
 
@@ -89,16 +91,23 @@ router.get("/", exigirLogin, async (req: Request, res: Response) => {
         const limite = new Date();
         limite.setDate(limite.getDate() + DIAS_PROXIMO_PRAZO);
 
+        // Permissão por perfil: os indicadores consideram só as demandas que o
+        // usuário pode ver (Administrador: todas; Líder/Membro: dos projetos dele
+        // ou atribuídas a ele)
+        const visiveis = filtroDemandasVisiveis(req.session.usuario!);
+
         // 1) Contagem agrupada: uma única consulta serve para o total e para
         //    as três distribuições (status, prioridade e tipo).
         const resultadoContagem = await conn.execute(
             `SELECT
-                status AS "status",
-                prioridade AS "prioridade",
-                tipo AS "tipo",
+                d.status AS "status",
+                d.prioridade AS "prioridade",
+                d.tipo AS "tipo",
                 COUNT(*) AS "quantidade"
-             FROM demandas
-             GROUP BY status, prioridade, tipo`
+             FROM demandas d
+             WHERE 1 = 1 ${visiveis.sql}
+             GROUP BY d.status, d.prioridade, d.tipo`,
+            visiveis.binds
         );
 
         const porStatus = contagemZerada(STATUS);
@@ -120,7 +129,9 @@ router.get("/", exigirLogin, async (req: Request, res: Response) => {
              ${JOINS_LISTA}
              WHERE d.prioridade = 'Crítica'
                AND d.status NOT IN ('Concluída', 'Cancelada')
-             ORDER BY d.prazo_finalizacao ASC, d.id ASC`
+               ${visiveis.sql}
+             ORDER BY d.prazo_finalizacao ASC, d.id ASC`,
+            visiveis.binds
         );
 
         // 3) Demandas em aberto cujo prazo ocorre de hoje até o limite
@@ -130,8 +141,9 @@ router.get("/", exigirLogin, async (req: Request, res: Response) => {
              WHERE d.status NOT IN ('Concluída', 'Cancelada')
                AND d.prazo_finalizacao >= TO_DATE(:hoje, 'YYYY-MM-DD')
                AND d.prazo_finalizacao <= TO_DATE(:limite, 'YYYY-MM-DD')
+               ${visiveis.sql}
              ORDER BY d.prazo_finalizacao ASC, d.id ASC`,
-            { hoje: dataISO(hoje), limite: dataISO(limite) }
+            { hoje: dataISO(hoje), limite: dataISO(limite), ...visiveis.binds }
         );
 
         // Resposta padronizada em JSON com todo o resumo do dashboard

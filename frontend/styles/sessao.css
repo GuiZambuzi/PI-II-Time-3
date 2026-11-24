@@ -62,6 +62,17 @@ no lugar do antigo .perfil-container.
     color: #ffffff;
 }
 
+/* permissões por perfil (sessao.js): enquanto a sessão não carrega, os
+   elementos restritos ficam invisíveis, para não "piscarem" na tela */
+body:not([data-perfil]) [data-perfis] {
+    visibility: hidden;
+}
+
+/* elemento que o perfil do usuário não pode usar */
+.oculto-perfil {
+    display: none !important;
+}
+
 /* nas telas pequenas: esconde a saudação para não apertar o menu */
 @media (max-width: 900px) {
     #saudacaoUsuario {

@@ -9,6 +9,8 @@
 import { Router, Request, Response } from "express";
 import { getConn } from "../database/db";
 import { exigirLogin } from "../middleware/exigirLogin";
+// permissões por perfil (João Victor Grisolia Luis)
+import { exigirPerfil, ehAdministrador, podeAcessarProjeto, ADMINISTRADOR, LIDER } from "../middleware/permissoes";
 
 const router = Router();
 
@@ -36,21 +38,28 @@ const PRIORIDADES: Record<string, string> = {
 };
 
 // 1. ROTA GET /projetos: Lista apenas os projetos vinculados ao usuário logado
+// (o Administrador vê todos os projetos - permissão do perfil, item 2.1.1)
 router.get("/projetos", exigirLogin, async (req: Request, res: Response) => {
-    // O id vem da sessão (cookie), nunca do corpo ou da URL
-    const idUsuario = req.session.usuario!.id;
+    // O usuário vem da sessão (cookie), nunca do corpo ou da URL
+    const usuario = req.session.usuario!;
 
     let conn;
     try {
         conn = await getConn();
-        const resultado: any = await conn.execute(
-            `SELECT p.id AS "id", p.nome AS "nome", p.descricao AS "descricao"
-               FROM projetos p
-               JOIN usuario_projetos up ON up.id_projeto = p.id
-              WHERE up.id_usuario = :idUsuario
-              ORDER BY p.id`,
-            { idUsuario }
-        );
+        const resultado: any = ehAdministrador(usuario)
+            ? await conn.execute(
+                `SELECT p.id AS "id", p.nome AS "nome", p.descricao AS "descricao"
+                   FROM projetos p
+                  ORDER BY p.id`
+            )
+            : await conn.execute(
+                `SELECT p.id AS "id", p.nome AS "nome", p.descricao AS "descricao"
+                   FROM projetos p
+                   JOIN usuario_projetos up ON up.id_projeto = p.id
+                  WHERE up.id_usuario = :idUsuario
+                  ORDER BY p.id`,
+                { idUsuario: usuario.id }
+            );
 
         return res.status(200).json(resultado.rows || []);
     } catch (error) {
@@ -87,7 +96,8 @@ router.get("/usuarios", async (req: Request, res: Response) => {
 });
 
 // 2. ROTA POST /demandas: Cadastra uma nova demanda com validações e persistência no Oracle
-router.post("/demandas", exigirLogin, async (req: Request, res: Response) => {
+// Só Administrador e Líder de Projeto criam demandas (Membro da Equipe recebe 403)
+router.post("/demandas", exigirLogin, exigirPerfil(ADMINISTRADOR, LIDER), async (req: Request, res: Response) => {
     const { titulo, descricao, tipo, prioridade, id_projeto, id_responsavel, prazo_finalizacao } = req.body;
 
     // Validação de campos obrigatórios exigidos pelo Requisito
@@ -122,19 +132,15 @@ router.post("/demandas", exigirLogin, async (req: Request, res: Response) => {
         });
     }
 
-    const idUsuario = req.session.usuario!.id;
+    const usuario = req.session.usuario!;
 
     let conn;
     try {
         conn = await getConn();
 
         // Verificar se o usuário logado está vinculado ao projeto informado
-        const vinculo: any = await conn.execute(
-            `SELECT 1 FROM usuario_projetos
-              WHERE id_usuario = :idUsuario AND id_projeto = :idProjeto`,
-            { idUsuario, idProjeto: Number(id_projeto) }
-        );
-        if (vinculo.rows.length === 0) {
+        // (o Administrador pode cadastrar em qualquer projeto)
+        if (!(await podeAcessarProjeto(conn, usuario, Number(id_projeto)))) {
             return res.status(403).json({
                 mensagem: "Você não tem acesso a este projeto."
             });

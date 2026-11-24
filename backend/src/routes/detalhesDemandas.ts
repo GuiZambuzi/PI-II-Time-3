@@ -9,11 +9,14 @@
 import { Router, Request, Response } from 'express';
 import oracledb from 'oracledb';
 import { getConn } from '../database/db';
+// permissões por perfil (João Victor Grisolia Luis): 403 para demandas fora
+// dos projetos do usuário (Administrador vê todas)
+import { exigirAcessoDemanda } from '../middleware/permissoes';
 
 const router = Router();
 
 // Busca os detalhes de uma demanda pelo ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', exigirAcessoDemanda, async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
     if (!Number.isInteger(id) || id <= 0) {
@@ -72,7 +75,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Lista os comentários de uma demanda
-router.get('/:id/comentarios', async (req: Request, res: Response) => {
+router.get('/:id/comentarios', exigirAcessoDemanda, async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
     if (!Number.isInteger(id) || id <= 0) {
@@ -130,7 +133,7 @@ router.get('/:id/comentarios', async (req: Request, res: Response) => {
 
 // Cadastra um comentário em nome do usuário logado
 // (as rotas de /demandas exigem login: exigirLogin no server.ts)
-router.post('/:id/comentarios', async (req: Request, res: Response) => {
+router.post('/:id/comentarios', exigirAcessoDemanda, async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const { texto } = req.body;
 
