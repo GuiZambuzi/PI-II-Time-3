@@ -100,6 +100,55 @@ document.addEventListener("DOMContentLoaded", async function() {
         console.error("Erro ao buscar usuários responsáveis:", erro);
     }
 
+    // 1.2. MODO EDIÇÃO: se a URL tiver ?id=..., carrega a demanda e preenche o formulário.
+    // (a tela de detalhes abre esta página com o botão "Editar": cadastroDemanda.html?id=123)
+    const idEdicao = new URLSearchParams(window.location.search).get("id");
+    const modoEdicao = idEdicao !== null && idEdicao !== "";
+    let prazoOriginal = null; // AAAA-MM-DD da demanda antes da edição
+
+    if (modoEdicao) {
+        try {
+            const respDemanda = await fetch(`${API_URL}/demandas/${encodeURIComponent(idEdicao)}`, {
+                credentials: "include"
+            });
+
+            if (!respDemanda.ok) {
+                const erroDemanda = await respDemanda.json().catch(() => ({}));
+                alert("Erro " + respDemanda.status + ": " + (erroDemanda.mensagem || "Não foi possível carregar a demanda."));
+                window.location.href = "listagemDemanda.html";
+                return;
+            }
+
+            const demanda = await respDemanda.json();
+
+            document.getElementById("titulo").value = demanda.titulo || "";
+            document.getElementById("tipo").value = demanda.tipo || "";
+            document.getElementById("prioridade").value = demanda.prioridade || "";
+            document.getElementById("descricao").value = demanda.descricao || "";
+            document.getElementById("status").value = demanda.status || "";
+            selectResponsavel.value = demanda.responsavelId ? String(demanda.responsavelId) : "";
+
+            // O projeto não muda na edição (é uma informação estrutural da demanda)
+            selectProjeto.value = String(demanda.projetoId);
+            selectProjeto.disabled = true;
+
+            // A API devolve o prazo como DD/MM/AAAA; o input type="date" quer AAAA-MM-DD
+            if (demanda.prazoFinalizacao) {
+                prazoOriginal = demanda.prazoFinalizacao.split("/").reverse().join("-");
+                document.getElementById("prazo_finalizacao").value = prazoOriginal;
+            }
+
+            document.getElementById("titulo-formulario").textContent = "Editar Demanda";
+            document.getElementById("subtitulo-formulario").textContent =
+                "Altere os campos desejados e salve. As mudanças ficam registradas no histórico da demanda.";
+            document.getElementById("btn-submit").textContent = "Salvar Alterações";
+        } catch (erro) {
+            console.error("Erro ao carregar a demanda para edição:", erro);
+            alert("Não foi possível carregar a demanda para edição.");
+            return;
+        }
+    }
+
     // 2. VALIDAÇÃO E ENVIO DO FORMULÁRIO
     form.addEventListener("submit", async function(event) {
         event.preventDefault();
@@ -146,10 +195,12 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (prazo_finalizacao === "") {
             mostrarErro("erro-prazo", "O prazo de finalização é obrigatório.");
             formularioValido = false;
-        } else {
+        } else if (!modoEdicao || prazo_finalizacao !== prazoOriginal) {
+            // Na edição, só exige data futura se o prazo foi alterado
+            // (uma demanda antiga pode ter o prazo já vencido e continuar editável)
             const dataPrazo = new Date(prazo_finalizacao);
             dataPrazo.setUTCHours(23, 59, 59, 999);
-            
+
             const dataAtual = new Date();
             dataAtual.setHours(0, 0, 0, 0);
 
@@ -182,8 +233,13 @@ document.addEventListener("DOMContentLoaded", async function() {
             };
 
             try {
-                const respostaApi = await fetch(`${API_URL}/demandas`, {
-                    method: "POST",
+                // Edição: PATCH /demandas/:id | Cadastro: POST /demandas
+                const url = modoEdicao
+                    ? `${API_URL}/demandas/${encodeURIComponent(idEdicao)}`
+                    : `${API_URL}/demandas`;
+
+                const respostaApi = await fetch(url, {
+                    method: modoEdicao ? "PATCH" : "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
@@ -194,7 +250,14 @@ document.addEventListener("DOMContentLoaded", async function() {
                 const resultado = await respostaApi.json();
 
                 if (!respostaApi.ok) {
-                    alert("Erro " + respostaApi.status + ": " + (resultado.mensagem || "Erro ao cadastrar."));
+                    alert("Erro " + respostaApi.status + ": " + (resultado.mensagem || "Erro ao salvar."));
+                    return;
+                }
+
+                // Edição concluída: volta para a tela de detalhes da demanda
+                if (modoEdicao) {
+                    alert(resultado.mensagem || "Demanda atualizada com sucesso!");
+                    window.location.href = `detalhesDemanda.html?id=${encodeURIComponent(idEdicao)}`;
                     return;
                 }
 
@@ -230,4 +293,3 @@ function limparErros() {
         spansDeErro[i].style.display = "none";
     }
 }
-
