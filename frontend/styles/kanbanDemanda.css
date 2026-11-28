@@ -1,0 +1,393 @@
+
+/*
+    Feito por Rafael França Cardoso
+
+    Este arquivo contém os estilos específicos da página de Quadro de Demandas.
+
+    Estrutura:
+    Define o posicionamento e o espaçamento dos elementos da página.
+
+    Filtros:
+    Estiliza o campo de pesquisa e os filtros.
+
+    Quadro:
+    Define a aparência das colunas e dos cards de demandas.
+
+    Status e prioridade:
+    Define as cores dos indicadores e etiquetas.
+
+    Mensagem:
+    Define a aparência das mensagens de erro e ausência de resultados.
+*/
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f4f7f9;
+}
+
+.container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 40px 30px;
+}
+
+.topo-pagina {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.topo-pagina h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: #2563eb;
+}
+
+.topo-pagina p {
+    font-size: 16px;
+    color: #64748b;
+}
+
+.btn-nova-demanda {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    background-color: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-nova-demanda:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
+}
+
+.filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+.campo-busca {
+    flex: 1;
+}
+
+.campo-busca input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    transition: 0.3s;
+}
+
+.campo-busca input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.campo-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.campo-filtro label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.campo-filtro select {
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background-color: #ffffff;
+    transition: 0.3s;
+}
+
+.campo-filtro select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.resumo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 15px;
+    color: #475569;
+    font-size: 14px;
+}
+
+.resumo strong {
+    color: #2563eb;
+}
+
+.quadro {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(230px, 1fr));
+    align-items: start;
+    gap: 15px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 15px;
+}
+
+.coluna {
+    min-height: 480px;
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.coluna-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 13px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.titulo-coluna {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.titulo-coluna h2 {
+    font-size: 15px;
+    color: #334155;
+}
+
+.indicador {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.contador {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.coluna-aberta .indicador {
+    background-color: #64748b;
+}
+
+.coluna-andamento .indicador {
+    background-color: #2563eb;
+}
+
+.coluna-revisao .indicador {
+    background-color: #d97706;
+}
+
+.coluna-concluida .indicador {
+    background-color: #16a34a;
+}
+
+.coluna-cancelada .indicador {
+    background-color: #dc2626;
+}
+
+.lista-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 390px;
+}
+
+.card-demanda {
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.card-demanda:hover {
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.10);
+}
+
+.card-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.card-id {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.card-titulo {
+    margin-bottom: 9px;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+.card-descricao {
+    margin-bottom: 12px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.card-projeto {
+    margin-bottom: 12px;
+    color: #475569;
+    font-size: 12px;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.prioridade-critica {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.prioridade-alta {
+    background-color: #ffedd5;
+    color: #c2410c;
+}
+
+.prioridade-media {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.prioridade-baixa {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.card-rodape {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.card-responsavel {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #475569;
+    font-size: 11px;
+}
+
+.card-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.card-prazo {
+    color: #64748b;
+    font-size: 10px;
+}
+
+#sem-resultados {
+    display: none;
+    padding: 30px;
+    text-align: center;
+    color: #475569;
+    font-size: 14px;
+}
+
+#mensagem-erro {
+    display: none;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 7px;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+    .quadro {
+        grid-template-columns: repeat(5, 260px);
+    }
+
+    .filtros {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 650px) {
+    .container {
+        padding: 25px 15px;
+    }
+
+    .topo-pagina {
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .topo-pagina h1 {
+        font-size: 25px;
+    }
+
+    .filtros {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .campo-busca,
+    .campo-filtro {
+        width: 100%;
+    }
+}

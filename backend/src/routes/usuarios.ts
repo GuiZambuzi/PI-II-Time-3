@@ -22,7 +22,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { exigirLogin } from "../middleware/exigirLogin";
 import { getConn } from "../database/db";
-import { ehAdministrador } from "../middleware/permissoes";
+import { ehAdministrador, podeAcessarProjeto } from "../middleware/permissoes";
 
 const router = Router();
 
@@ -173,37 +173,89 @@ router.post("/logout", exigirLogin, (req: Request, res: Response, next: NextFunc
  */
 router.get("/usuarios", exigirLogin, async (req: Request, res: Response) => {
   const usuarioLogado = req.session.usuario!;
+  const idProjetoParam = req.query.id_projeto;
 
   let conn;
   try {
     conn = await getConn();
-    // a coluna senha_hash não entra no SELECT: o hash nunca sai do banco por esta rota
+
+    // Quando um projeto for informado, retorna somente seus usuários vinculados.
+    if (idProjetoParam !== undefined) {
+      const idProjeto = Number(idProjetoParam);
+
+      if (!Number.isInteger(idProjeto) || idProjeto <= 0) {
+        return res.status(400).json({
+          mensagem: "ID do projeto inválido."
+        });
+      }
+
+      // Líder só pode consultar usuários de projetos aos quais está vinculado.
+      if (
+        !ehAdministrador(usuarioLogado) &&
+        !(await podeAcessarProjeto(conn, usuarioLogado, idProjeto))
+      ) {
+        return res.status(403).json({
+          mensagem: "Você não tem acesso a este projeto."
+        });
+      }
+
+      const resultado = await conn.execute<UsuarioSessao>(
+        `SELECT u.id AS "id",
+                u.nome AS "nome",
+                u.email AS "email",
+                u.perfil AS "perfil"
+           FROM usuarios u
+          WHERE EXISTS (
+                SELECT 1
+                  FROM usuario_projetos up
+                 WHERE up.id_usuario = u.id
+                   AND up.id_projeto = :idProjeto
+          )
+          ORDER BY u.nome`,
+        { idProjeto }
+      );
+
+      return res.status(200).json(resultado.rows ?? []);
+    }
+
+    // Sem projeto informado, mantém o comportamento anterior.
     const resultado = ehAdministrador(usuarioLogado)
       ? await conn.execute<UsuarioSessao>(
-          `SELECT id AS "id", nome AS "nome", email AS "email", perfil AS "perfil"
+          `SELECT id AS "id", nome AS "nome",
+                  email AS "email", perfil AS "perfil"
              FROM usuarios
             ORDER BY nome`
         )
       : await conn.execute<UsuarioSessao>(
-          `SELECT u.id AS "id", u.nome AS "nome", u.email AS "email", u.perfil AS "perfil"
+          `SELECT u.id AS "id", u.nome AS "nome",
+                  u.email AS "email", u.perfil AS "perfil"
              FROM usuarios u
             WHERE u.id = :idUsuario
                OR u.id IN (
                     SELECT up.id_usuario
                       FROM usuario_projetos up
                      WHERE up.id_projeto IN (
-                           SELECT id_projeto FROM usuario_projetos WHERE id_usuario = :idUsuario
+                           SELECT id_projeto
+                             FROM usuario_projetos
+                            WHERE id_usuario = :idUsuario
                      )
                   )
             ORDER BY u.nome`,
           { idUsuario: usuarioLogado.id }
         );
+
     return res.status(200).json(resultado.rows ?? []);
+
   } catch (erro) {
-    console.error("Erro ao listar os usuários no Oracle:", erro instanceof Error ? erro.message : erro);
-    return res.status(500).json({ mensagem: "Não foi possível carregar os usuários. Tente novamente." });
+    console.error(
+      "Erro ao listar os usuários no Oracle:",
+      erro instanceof Error ? erro.message : erro
+    );
+
+    return res.status(500).json({
+      mensagem: "Não foi possível carregar os usuários. Tente novamente."
+    });
   } finally {
-    // devolve a conexão ao pool, mesmo se der erro
     if (conn) {
       try {
         await conn.close();

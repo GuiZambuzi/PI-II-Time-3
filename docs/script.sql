@@ -43,7 +43,7 @@ CREATE TABLE demandas (
     id_responsavel NUMBER(10) NULL,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     data_ultima_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    prazo_finalizacao DATE NOT NULL,
+    prazo_finalizacao DATE,
     CONSTRAINT fk_demanda_projeto FOREIGN KEY (id_projeto) REFERENCES projetos(id),
     CONSTRAINT fk_demanda_responsavel FOREIGN KEY (id_responsavel) REFERENCES usuarios(id) ON DELETE SET NULL
 );
@@ -70,9 +70,39 @@ CREATE TABLE historico_alteracoes (
     id_usuario NUMBER(10) NOT NULL,
     descricao_alteracao CLOB NOT NULL,
     data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT fk_historico_demanda FOREIGN KEY (id_demanda) REFERENCES demandas(id) ON DELETE CASCADE,
+    CONSTRAINT fk_historico_demanda FOREIGN KEY (id_demanda) REFERENCES demandas(id),
     CONSTRAINT fk_historico_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
 );
+
+-- -----------------------------------------------------
+-- 7. Triggers para garantir regras do escopo
+-- -----------------------------------------------------
+
+-- Impede a exclusão física de demandas.
+-- O cancelamento deve ser realizado alterando o status para 'Cancelada'.
+CREATE OR REPLACE TRIGGER trg_impedir_exclusao_demanda
+BEFORE DELETE ON demandas
+BEGIN
+    RAISE_APPLICATION_ERROR(-20002, 'Demandas não podem ser excluídas fisicamente. Utilize o cancelamento.');
+END;
+/
+
+-- Impede a exclusão direta do histórico de alterações.
+CREATE OR REPLACE TRIGGER trg_impedir_exclusao_historico
+BEFORE DELETE ON historico_alteracoes
+BEGIN
+    RAISE_APPLICATION_ERROR(-20001, 'O histórico de alterações não pode ser excluído.');
+END;
+/
+
+-- Atualiza automaticamente a data da última alteração da demanda.
+CREATE OR REPLACE TRIGGER trg_atualizar_data_demanda
+BEFORE UPDATE ON demandas
+FOR EACH ROW
+BEGIN
+    :NEW.data_ultima_atualizacao := CURRENT_TIMESTAMP;
+END;
+/
 
 -- -----------------------------------------------------
 -- DML: Inserção de Dados
@@ -86,6 +116,7 @@ CREATE TABLE historico_alteracoes (
 --   3 pedro@teste.com          -> Pedro123    |  8 carla.lider@empresa.com  -> Lider456
 --   4 maria@teste.com          -> Maria123    |  9 diego.membro@empresa.com -> Membro123
 --   5 ana@teste.com            -> AnaCosta1   | 10 elisa.membro@empresa.com -> Membro456
+
 INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES (1, 'Rafael Camilo', 'rafael@teste.com', '$2b$12$zw74vcSsMfv4F9JG9I.IT.w11fSP7xMG4kPlI9L/AYt5VS83hQ87.', 'Administrador');
 INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES (2, 'João Silva', 'joao@teste.com', '$2b$12$BlfA0NHsa0Hi8gDJTumpmuibEeUHALW4/A.JJHeM62UK8hDiCAv1q', 'Líder de Projeto');
 INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES (3, 'Pedro Santos', 'pedro@teste.com', '$2b$12$aY3LZvTHXq4ecTH3YautqeUY.bdPfYSe4zvIrBBgaUzq2eQgzBGry', 'Membro da Equipe');
@@ -97,25 +128,41 @@ INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES (8, 'Carla Men
 INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES (9, 'Diego Alves', 'diego.membro@empresa.com', '$2b$12$3XJhpipHqgE0IA4hWqxfsu2VkdHO8dBgn7kXQGXU2y3nPyMSyyVeS', 'Membro da Equipe');
 INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES (10, 'Elisa Rocha', 'elisa.membro@empresa.com', '$2b$12$1fFndQTXO73omASuz3tf1.Jy97FAiXRZx40bahtEYszEEgWpEayKm', 'Membro da Equipe');
 
+-- -----------------------------------------------------
 -- 2. Inserção de Projetos
+-- -----------------------------------------------------
+
 INSERT INTO projetos (id, nome, descricao) VALUES (1, 'Sistema Web', 'Sistema de acompanhamento de demandas');
 INSERT INTO projetos (id, nome, descricao) VALUES (2, 'Aplicativo Mobile', 'Aplicativo para dispositivos móveis');
 INSERT INTO projetos (id, nome, descricao) VALUES (3, 'Portal do Cliente', 'Portal para atendimento de clientes');
 
+-- -----------------------------------------------------
 -- 3. Inserção de Vínculos (Usuários <-> Projetos)
+-- -----------------------------------------------------
+
+-- Projeto 1: Sistema Web
 INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (2, 1);
 INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (3, 1);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (4, 1);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (5, 1);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (5, 2);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (2, 2);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (4, 2);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (3, 2);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (2, 3);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (3, 3);
-INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (4, 3);
 
+-- Projeto 2: Aplicativo Mobile
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (5, 2);
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (4, 2);
+
+-- Projeto 3: Portal do Cliente
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (2, 3);
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (7, 3);
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (8, 3);
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (9, 3);
+INSERT INTO usuario_projetos (id_usuario, id_projeto) VALUES (10, 3);
+
+-- -----------------------------------------------------
 -- 4. Inserção de Demandas
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- 4. Inserção de Demandas
+-- -----------------------------------------------------
+
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
 (1, 'Corrigir erro no login', 'O sistema apresenta erro ao inserir a senha correta.', 'Defeito', 'Crítica', 'Aberta', 1, 3, TO_TIMESTAMP('2026-10-10 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-18', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-10 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
@@ -123,7 +170,7 @@ INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projet
 (2, 'Criar tela de cadastro', 'Desenvolver formulário para cadastrar novos usuários.', 'Tarefa', 'Alta', 'Em andamento', 1, 3, TO_TIMESTAMP('2026-10-11 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-22', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-14 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
-(3, 'Melhorar pesquisa de demandas', 'Permitir localizar demandas pelo título ou pela descrição.', 'Melhoria', 'Média', 'Em revisão', 1, 4, TO_TIMESTAMP('2026-10-12 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-25', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+(3, 'Melhorar pesquisa de demandas', 'Permitir localizar demandas pelo título ou pela descrição.', 'Melhoria', 'Média', 'Em revisão', 1, 3, TO_TIMESTAMP('2026-10-12 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-25', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
 (4, 'Atualizar documentação', 'Revisar as instruções de instalação e utilização do sistema.', 'Documentação', 'Baixa', 'Concluída', 1, 2, TO_TIMESTAMP('2026-10-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-12', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-11 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
@@ -132,27 +179,47 @@ INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projet
 (5, 'Corrigir falha no aplicativo', 'O aplicativo fecha ao abrir a página de perfil.', 'Defeito', 'Alta', 'Cancelada', 2, 4, TO_TIMESTAMP('2026-10-03 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-15', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-08 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
-(6, 'Implementar notificações', 'Enviar notificações quando uma demanda for atualizada.', 'Tarefa', 'Média', 'Aberta', 2, 3, TO_TIMESTAMP('2026-10-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-19', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+(6, 'Implementar notificações', 'Enviar notificações quando uma demanda for atualizada.', 'Tarefa', 'Média', 'Aberta', 2, 4, TO_TIMESTAMP('2026-10-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-19', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
-(7, 'Adicionar filtro por projeto', 'Permitir filtrar a listagem pelo projeto relacionado.', 'Melhoria', 'Crítica', 'Em andamento', 3, 4, TO_TIMESTAMP('2026-10-14 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-17', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+(7, 'Adicionar filtro por projeto', 'Permitir filtrar a listagem pelo projeto relacionado.', 'Melhoria', 'Crítica', 'Em andamento', 3, 9, TO_TIMESTAMP('2026-10-14 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-17', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
-(8, 'Documentar API', 'Registrar as rotas GET e POST e seus parâmetros.', 'Documentação', 'Baixa', 'Aberta', 3, 2, TO_TIMESTAMP('2026-10-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-30', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+(8, 'Documentar API', 'Registrar as rotas GET e POST e seus parâmetros.', 'Documentação', 'Baixa', 'Aberta', 3, 10, TO_TIMESTAMP('2026-10-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-30', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
-(9, 'Corrigir validação do formulário', 'O formulário aceita campos obrigatórios vazios.', 'Defeito', 'Alta', 'Em revisão', 2, 3, TO_TIMESTAMP('2026-10-08 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+(9, 'Corrigir validação do formulário', 'O formulário aceita campos obrigatórios vazios.', 'Defeito', 'Alta', 'Em revisão', 2, 4, TO_TIMESTAMP('2026-10-08 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
-(10, 'Criar relatório de desempenho', 'Exibir indicadores de demandas por status e prioridade.', 'Tarefa', 'Média', 'Concluída', 3, 4, TO_TIMESTAMP('2026-09-28 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-10', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-09 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+(10, 'Criar relatório de desempenho', 'Exibir indicadores de demandas por status e prioridade.', 'Tarefa', 'Média', 'Concluída', 3, 9, TO_TIMESTAMP('2026-09-28 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-10', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-09 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
 (11, 'Melhorar acessibilidade', 'Ajustar textos e navegação para facilitar o uso da interface.', 'Melhoria', 'Baixa', 'Em andamento', 1, 3, TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-05', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES 
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
 (12, 'Corrigir erro no relatório', 'O relatório apresenta contagens incorretas de demandas abertas.', 'Defeito', 'Crítica', 'Aberta', 3, NULL, TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-18', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
+(13, 'Revisar autenticação do sistema', 'Verificar a segurança do processo de autenticação dos usuários.', 'Tarefa', 'Alta', 'Aberta', 1, 2, TO_TIMESTAMP('2026-10-17 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-02', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-17 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
+(14, 'Implementar recuperação de senha', 'Criar funcionalidade para recuperação de senha por e-mail.', 'Melhoria', 'Média', 'Em andamento', 3, 2, TO_TIMESTAMP('2026-10-18 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-06', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-19 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
+(15, 'Ajustar layout da tela inicial', 'Corrigir espaçamentos e alinhamentos dos componentes da tela inicial do aplicativo.', 'Melhoria', 'Baixa', 'Aberta', 2, 5, TO_TIMESTAMP('2026-10-19 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-08', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-19 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
+(16, 'Corrigir sincronização de dados', 'Corrigir falhas na sincronização das informações entre o aplicativo e o servidor.', 'Defeito', 'Crítica', 'Em revisão', 2, 5, TO_TIMESTAMP('2026-10-20 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-04', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-21 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
+(17, 'Revisar permissões de usuários', 'Verificar se os usuários possuem acesso somente às funcionalidades permitidas pelo seu perfil.', 'Tarefa', 'Alta', 'Em andamento', 3, 7, TO_TIMESTAMP('2026-10-21 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-07', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-22 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
+INSERT INTO demandas (id, titulo, descricao, tipo, prioridade, status, id_projeto, id_responsavel, data_criacao, prazo_finalizacao, data_ultima_atualizacao) VALUES
+(18, 'Documentar funcionalidades do portal', 'Descrever as principais funcionalidades disponíveis no Portal do Cliente.', 'Documentação', 'Média', 'Aberta', 3, 8, TO_TIMESTAMP('2026-10-22 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-11-10', 'YYYY-MM-DD'), TO_TIMESTAMP('2026-10-22 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+-- -----------------------------------------------------
 -- 5. Inserção de Comentários
+-- -----------------------------------------------------
+
 INSERT INTO comentarios (id, id_demanda, id_usuario, texto_comentario, data_hora) VALUES 
 (1, 1, 3, 'Consegui reproduzir o erro ao tentar entrar no sistema.', TO_TIMESTAMP('2026-10-10 14:30:00', 'YYYY-MM-DD HH24:MI:SS'));
 
@@ -169,9 +236,10 @@ INSERT INTO comentarios (id, id_demanda, id_usuario, texto_comentario, data_hora
 -- continua em 1. Sem este ajuste, o primeiro cadastro feito pelo sistema (ex.: nova
 -- demanda ou comentário) tentaria usar um id já existente e daria erro ORA-00001.
 -- START WITH LIMIT VALUE faz o próximo id gerado começar após o maior id da tabela.
-ALTER TABLE usuarios    MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
-ALTER TABLE projetos    MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
-ALTER TABLE demandas    MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
+
+ALTER TABLE usuarios MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
+ALTER TABLE projetos MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
+ALTER TABLE demandas MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
 ALTER TABLE comentarios MODIFY id GENERATED BY DEFAULT AS IDENTITY (START WITH LIMIT VALUE);
 
 -- Confirma as alterações no banco de dados
