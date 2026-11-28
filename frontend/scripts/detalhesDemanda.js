@@ -28,6 +28,8 @@ const listaComentarios = document.getElementById('listaComentarios');
 const textoComentario = document.getElementById('textoComentario');
 const btnAdicionarComentario = document.getElementById('btnAdicionarComentario');
 
+const listaHistorico = document.getElementById('listaHistorico');
+
 const mensagemErro = document.getElementById('mensagemErro');
 const mensagemComentario = document.getElementById('mensagemComentario');
 
@@ -158,6 +160,53 @@ async function carregarComentarios() {
     }
 }
 
+// Busca o histórico de alterações da demanda
+async function carregarHistorico() {
+    try {
+        const resposta = await fetch(`${API_URL}/demandas/${idDemanda}/historico`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            listaHistorico.textContent = dados.mensagem || 'Não foi possível carregar o histórico.';
+            return;
+        }
+
+        listaHistorico.innerHTML = '';
+
+        if (!dados || dados.length === 0) {
+            listaHistorico.textContent = 'Nenhuma alteração registrada.';
+            return;
+        }
+
+        dados.forEach((alteracao) => {
+            const div = document.createElement('div');
+            div.className = 'itemHistorico';
+
+            const usuario = document.createElement('strong');
+            usuario.textContent = pegarCampo(alteracao, ['usuario']);
+
+            const descricao = document.createElement('p');
+            descricao.textContent = pegarCampo(alteracao, ['descricao']);
+
+            const data = document.createElement('small');
+            data.textContent = pegarCampo(alteracao, ['dataHora']);
+
+            div.appendChild(usuario);
+            div.appendChild(descricao);
+            div.appendChild(data);
+
+            listaHistorico.appendChild(div);
+        });
+    } catch (erro) {
+        console.error('Erro ao carregar histórico:', erro);
+        listaHistorico.textContent = 'Erro ao conectar com o servidor.';
+    }
+}
+
 // Envia um novo comentário
 async function adicionarComentario() {
     const texto = textoComentario.value.trim();
@@ -205,4 +254,5 @@ carregarDemanda();
 
 if (idDemanda && Number(idDemanda) > 0) {
     carregarComentarios();
+    carregarHistorico();
 }

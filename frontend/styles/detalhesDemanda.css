@@ -152,7 +152,32 @@ body {
     font-family: inherit;
 }
 .historico p {
-    padding: 12px 0;
-    border-bottom: 1px solid #e2e8f0;
     color: #64748b;
+}
+
+.itemHistorico {
+    padding: 15px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #334155;
+}
+
+.itemHistorico:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.itemHistorico strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #2563eb;
+}
+
+.itemHistorico p {
+    line-height: 1.6;
+}
+
+.itemHistorico small {
+    display: block;
+    margin-top: 10px;
+    color: #94a3b8;
 }

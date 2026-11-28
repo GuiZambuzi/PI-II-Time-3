@@ -231,4 +231,49 @@ router.post('/:id/comentarios', exigirAcessoDemanda, async (req: Request, res: R
     }
 });
 
+// Lista o histórico de alterações de uma demanda
+router.get('/:id/historico', exigirAcessoDemanda, async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+            mensagem: 'ID da demanda inválido.',
+        });
+    }
+
+    let conn;
+
+    try {
+        conn = await getConn();
+
+        // Consulta o histórico e o nome do usuário que realizou cada alteração
+        const resultado = await conn.execute(
+            `SELECT
+                h.id AS "id",
+                h.id_demanda AS "demandaId",
+                h.id_usuario AS "usuarioId",
+                u.nome AS "usuario",
+                h.descricao_alteracao AS "descricao",
+                TO_CHAR(h.data_hora, 'DD/MM/YYYY HH24:MI') AS "dataHora"
+            FROM historico_alteracoes h
+            INNER JOIN usuarios u ON u.id = h.id_usuario
+            WHERE h.id_demanda = :id
+            ORDER BY h.data_hora DESC`,
+            { id }
+        );
+
+        return res.status(200).json(resultado.rows);
+    } catch (erro) {
+        console.error('Erro ao consultar histórico:', erro);
+
+        return res.status(500).json({
+            mensagem: 'Erro ao consultar o histórico de alterações.',
+        });
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
+    }
+});
+
 export default router;
