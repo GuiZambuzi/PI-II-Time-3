@@ -1,0 +1,213 @@
+
+<!--
+    Feito por Rafael França Cardoso
+
+    Esta página é responsável pela visualização das demandas em formato Kanban.
+
+    Cabeçalho:
+    Exibe o logo, menu de navegação e perfil do usuário.
+
+    Filtros:
+    Permite pesquisar demandas e filtrar por projeto, prioridade e tipo.
+
+    Quadro:
+    Organiza as demandas de acordo com seus respectivos status.
+
+    Colunas:
+    Exibe as demandas abertas, em andamento, em revisão, concluídas e canceladas.
+-->
+
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/kanbanDemanda.css">
+    <link rel="stylesheet" href="../styles/sessao.css">
+
+    <link rel="shortcut icon" href="../imgs/ico/demandly_ico.ico" type="image/x-icon">
+
+    <title>Quadro de Demandas | Demandly</title>
+
+    <script src="../scripts/sessao.js" defer></script>
+    <script src="../scripts/kanbanDemanda.js" defer></script>
+</head>
+
+<body>
+
+    <header class="header">
+
+        <div class="logo">
+            <a href="dashboard.html">
+                <img src="../imgs/logos/demandly_logo_white.webp" alt="Demandly">
+            </a>
+        </div>
+
+        <div class="nav-container">
+            <nav>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="listagemDemanda.html">Listagem de Demandas</a>
+                <a href="kanbanDemanda.html">Quadro de Demandas</a>
+                <a href="cadastroDemanda.html" data-perfis="Administrador,Líder de Projeto">Cadastro/Edição de Demanda</a>
+            </nav>
+        </div>
+
+        <div class="usuario-container">
+            <span id="saudacaoUsuario">Carregando...</span>
+            <span id="perfilUsuario"></span>
+            <button type="button" id="botaoSair">Sair</button>
+        </div>
+
+    </header>
+
+    <div class="container">
+
+        <div class="topo-pagina">
+
+            <div>
+                <h1>Quadro de Demandas</h1>
+                <p>Acompanhe e organize o andamento das demandas.</p>
+            </div>
+
+            <a href="cadastroDemanda.html" class="btn-nova-demanda"
+                data-perfis="Administrador,Líder de Projeto">
+                + Nova Demanda
+            </a>
+
+        </div>
+
+        <div class="filtros">
+
+            <div class="campo-busca">
+                <input
+                    type="text"
+                    id="buscaDemanda"
+                    placeholder="Pesquisar demanda..."
+                >
+            </div>
+
+            <div class="campo-filtro">
+                <label>Projeto</label>
+
+                <select id="filtroProjeto">
+                    <option value="todos">Todos os projetos</option>
+                </select>
+            </div>
+
+            <div class="campo-filtro">
+                <label>Prioridade</label>
+
+                <select id="filtroPrioridade">
+                    <option value="todas">Todas</option>
+                    <option value="Crítica">Crítica</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Média">Média</option>
+                    <option value="Baixa">Baixa</option>
+                </select>
+            </div>
+
+            <div class="campo-filtro">
+                <label>Tipo</label>
+
+                <select id="filtroTipo">
+                    <option value="todos">Todos</option>
+                    <option value="Tarefa">Tarefa</option>
+                    <option value="Defeito">Defeito</option>
+                    <option value="Melhoria">Melhoria</option>
+                    <option value="Documentação">Documentação</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="resumo">
+            <span>Demandas encontradas:</span>
+            <strong id="totalDemandas">0</strong>
+        </div>
+
+        <div class="quadro">
+
+            <section class="coluna coluna-aberta" data-status="Aberta">
+
+                <div class="coluna-cabecalho">
+                    <div class="titulo-coluna">
+                        <span class="indicador"></span>
+                        <h2>Aberta</h2>
+                        <span class="contador" id="contadorAberta">0</span>
+                    </div>
+                </div>
+
+                <div class="lista-cards" id="listaAberta"></div>
+
+            </section>
+
+            <section class="coluna coluna-andamento" data-status="Em andamento">
+
+                <div class="coluna-cabecalho">
+                    <div class="titulo-coluna">
+                        <span class="indicador"></span>
+                        <h2>Em andamento</h2>
+                        <span class="contador" id="contadorAndamento">0</span>
+                    </div>
+                </div>
+
+                <div class="lista-cards" id="listaAndamento"></div>
+
+            </section>
+
+            <section class="coluna coluna-revisao" data-status="Em revisão">
+
+                <div class="coluna-cabecalho">
+                    <div class="titulo-coluna">
+                        <span class="indicador"></span>
+                        <h2>Em revisão</h2>
+                        <span class="contador" id="contadorRevisao">0</span>
+                    </div>
+                </div>
+
+                <div class="lista-cards" id="listaRevisao"></div>
+
+            </section>
+
+            <section class="coluna coluna-concluida" data-status="Concluída">
+
+                <div class="coluna-cabecalho">
+                    <div class="titulo-coluna">
+                        <span class="indicador"></span>
+                        <h2>Concluída</h2>
+                        <span class="contador" id="contadorConcluida">0</span>
+                    </div>
+                </div>
+
+                <div class="lista-cards" id="listaConcluida"></div>
+
+            </section>
+
+            <section class="coluna coluna-cancelada" data-status="Cancelada">
+
+                <div class="coluna-cabecalho">
+                    <div class="titulo-coluna">
+                        <span class="indicador"></span>
+                        <h2>Cancelada</h2>
+                        <span class="contador" id="contadorCancelada">0</span>
+                    </div>
+                </div>
+
+                <div class="lista-cards" id="listaCancelada"></div>
+
+            </section>
+
+        </div>
+
+        <p id="mensagem-erro" role="alert"></p>
+
+        <p id="sem-resultados">Nenhuma demanda encontrada.</p>
+
+    </div>
+
+</body>
+
+</html>

@@ -69,17 +69,34 @@ document.addEventListener("DOMContentLoaded", async function() {
         selectProjeto.innerHTML = '<option value="" disabled selected>Erro ao carregar projetos</option>';
     }
 
-    // 1.1. CARREGAR OS USUÁRIOS/RESPONSÁVEIS DO SERVIDOR
-    try {
-        const respUsuarios = await fetch(`${API_URL}/usuarios`, {
-            credentials: "include"
-        });
 
-        if (respUsuarios.ok) {
-            const usuarios = await respUsuarios.json();
-            selectResponsavel.innerHTML = '<option value="" selected>Sem responsável (Opcional)</option>';
+    // 1.1. CARREGAR RESPONSÁVEIS DO PROJETO SELECIONADO
+    async function carregarResponsaveis(idProjeto, responsavelSelecionado = "") {
+        selectResponsavel.innerHTML =
+            '<option value="">Sem responsável (Opcional)</option>';
 
-            usuarios.forEach(user => {
+        selectResponsavel.disabled = true;
+
+        if (!idProjeto) return;
+
+        try {
+            const resposta = await fetch(
+                `${API_URL}/usuarios?id_projeto=${encodeURIComponent(idProjeto)}`,
+                {
+                    credentials: "include"
+                }
+            );
+
+            const resultado = await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(resultado.mensagem || "Erro ao carregar responsáveis.");
+            }
+
+            selectResponsavel.innerHTML =
+                '<option value="">Sem responsável (Opcional)</option>';
+
+            resultado.forEach(user => {
                 const option = document.createElement("option");
                 const userId = user.ID || user.id;
                 const userName = user.NOME || user.nome;
@@ -87,18 +104,32 @@ document.addEventListener("DOMContentLoaded", async function() {
 
                 option.value = userId;
                 option.textContent = `${userName} (${userPerfil})`;
+
                 selectResponsavel.appendChild(option);
             });
 
-            // Regra de Permissão (Escopo): Se for Membro da Equipe, ele só pode abrir para si mesmo
-            if (usuarioLogado && usuarioLogado.perfil === "Membro da Equipe") {
-                selectResponsavel.value = usuarioLogado.id;
-                selectResponsavel.disabled = true; // Trava o campo para evitar burlar a regra visualmente
+            // Membro da equipe só pode selecionar a si mesmo.
+            if (usuarioLogado?.perfil === "Membro da Equipe") {
+                selectResponsavel.value = String(usuarioLogado.id);
+                selectResponsavel.disabled = true;
+            } else {
+                selectResponsavel.value = String(responsavelSelecionado || "");
+                selectResponsavel.disabled = false;
             }
+
+        } catch (erro) {
+            console.error("Erro ao buscar responsáveis:", erro);
+
+            selectResponsavel.innerHTML =
+                '<option value="">Erro ao carregar responsáveis</option>';
         }
-    } catch (erro) {
-        console.error("Erro ao buscar usuários responsáveis:", erro);
     }
+
+    // Atualiza os responsáveis sempre que o projeto for alterado.
+    selectProjeto.addEventListener("change", function() {
+        carregarResponsaveis(selectProjeto.value);
+    });
+
 
     // 1.2. MODO EDIÇÃO: se a URL tiver ?id=..., carrega a demanda e preenche o formulário.
     // (a tela de detalhes abre esta página com o botão "Editar": cadastroDemanda.html?id=123)
@@ -128,9 +159,15 @@ document.addEventListener("DOMContentLoaded", async function() {
             document.getElementById("status").value = demanda.status || "";
             selectResponsavel.value = demanda.responsavelId ? String(demanda.responsavelId) : "";
 
-            // O projeto não muda na edição (é uma informação estrutural da demanda)
+            // O projeto não muda na edição.
             selectProjeto.value = String(demanda.projetoId);
             selectProjeto.disabled = true;
+
+            // Carrega somente os responsáveis vinculados ao projeto da demanda.
+            await carregarResponsaveis(
+                demanda.projetoId,
+                demanda.responsavelId
+            );
 
             // A API devolve o prazo como DD/MM/AAAA; o input type="date" quer AAAA-MM-DD
             if (demanda.prazoFinalizacao) {
@@ -188,7 +225,10 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
 
         // Responsável (se estiver travado para membro da equipe, garante o ID dele)
-        const id_responsavel = selectResponsavel.disabled ? usuarioLogado?.id : selectResponsavel.value;
+        const id_responsavel =
+            usuarioLogado?.perfil === "Membro da Equipe"
+                ? usuarioLogado.id
+                : selectResponsavel.value;
 
         // Validação do Prazo de Finalização
         const prazo_finalizacao = document.getElementById("prazo_finalizacao").value;
@@ -263,6 +303,8 @@ document.addEventListener("DOMContentLoaded", async function() {
 
                 alert(resultado.mensagem || "Demanda cadastrada com sucesso!");
                 form.reset();
+
+                await carregarResponsaveis("");
                 
                 // Reaplica a trava de membro da equipe caso limpe o form
                 if (usuarioLogado && usuarioLogado.perfil === "Membro da Equipe") {
